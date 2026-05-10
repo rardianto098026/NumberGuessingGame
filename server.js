@@ -227,11 +227,11 @@ io.on('connection', (socket) => {
       const targetSecret = room.playerSecrets[targetPlayerId];
       room.roundGuessCount[socket.id] = (room.roundGuessCount[socket.id] || 0) + 1;
 
-      let hint, correct = false, points = 0;
-      if (guessNum < targetSecret)      hint = '🔼 Terlalu rendah!';
-      else if (guessNum > targetSecret) hint = '🔽 Terlalu tinggi!';
+      let hint, hintCode, correct = false, points = 0;
+      if (guessNum < targetSecret)      { hint = '🔼 Lebih rendah!'; hintCode = 'low'; }
+      else if (guessNum > targetSecret) { hint = '🔽 Lebih tinggi!'; hintCode = 'high'; }
       else {
-        hint = '✅ BENAR!';
+        hint = '✅ BENAR!'; hintCode = 'correct';
         correct = true;
         points  = getSetguessPoints(room.roundGuessCount[socket.id]);
         player.score += points;
@@ -247,7 +247,7 @@ io.on('connection', (socket) => {
       io.to(roomCode).emit('guess_result', {
         playerId: player.id, player: player.username,
         targetId: target.id, target: target.username,
-        guess: guessNum, hint, correct, points,
+        guess: guessNum, hint, hintCode, correct, points,
         attemptsLeft: null,
         players: room.players, guessHistory: room.guessHistory,
         mode: 'setguess',
@@ -261,11 +261,11 @@ io.on('connection', (socket) => {
       player.attemptsLeft--;
       const attemptsUsed = room.config.maxAttempts - player.attemptsLeft;
 
-      let hint, correct = false, points = 0;
-      if (guessNum < room.secretNumber)      hint = '🔼 Terlalu rendah!';
-      else if (guessNum > room.secretNumber) hint = '🔽 Terlalu tinggi!';
+      let hint, hintCode, correct = false, points = 0;
+      if (guessNum < room.secretNumber)      { hint = '🔼 Lebih rendah!'; hintCode = 'low'; }
+      else if (guessNum > room.secretNumber) { hint = '🔽 Lebih tinggi!'; hintCode = 'high'; }
       else {
-        hint = '✅ BENAR!';
+        hint = '✅ BENAR!'; hintCode = 'correct';
         correct = true;
         points  = getPoints(attemptsUsed);
         player.score += points;
@@ -278,7 +278,7 @@ io.on('connection', (socket) => {
 
       io.to(roomCode).emit('guess_result', {
         playerId: player.id, player: player.username,
-        guess: guessNum, hint, correct, points,
+        guess: guessNum, hint, hintCode, correct, points,
         attemptsLeft: player.attemptsLeft, eliminated: player.eliminated,
         players: room.players, guessHistory: room.guessHistory,
         mode: 'classic',

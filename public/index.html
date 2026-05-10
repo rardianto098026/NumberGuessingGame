@@ -475,6 +475,19 @@
     .target-select:focus { border-color: var(--accent2); }
     option { background: #1e1e2e; }
 
+    /* ── Language Toggle ────────────────────────────────── */
+    .lang-toggle {
+      position: fixed; top: 14px; right: 16px; z-index: 9990;
+      display: flex; gap: 4px; align-items: center;
+    }
+    .lang-btn {
+      padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--muted2); transition: all .18s;
+      letter-spacing: .5px;
+    }
+    .lang-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
     /* ── Responsive ─────────────────────────────────────── */
     @media (max-width: 480px) {
       .config-grid { grid-template-columns: 1fr 1fr; }
@@ -494,29 +507,29 @@
     <div class="logo">
       <span class="icon">🎯</span>
       <h1>Higher or Lower</h1>
-      <p>Tebak angka rahasia bersama teman-temanmu!</p>
+      <p data-i18n="home.subtitle">Tebak angka rahasia bersama teman-temanmu!</p>
     </div>
 
     <div class="card home-card">
       <div class="field">
-        <label for="input-username">Username kamu</label>
-        <input type="text" id="input-username" placeholder="Masukkan nama..." maxlength="20" autocomplete="off" />
+        <label for="input-username" data-i18n="home.username_label">Username kamu</label>
+        <input type="text" id="input-username" placeholder="Masukkan nama..." data-i18n-ph="home.username_ph" maxlength="20" autocomplete="off" />
       </div>
 
       <div class="tab-group">
-        <button class="tab-btn active" id="tab-create" onclick="App.selectTab('create')">🚀 Buat Room</button>
-        <button class="tab-btn" id="tab-join" onclick="App.selectTab('join')">🔗 Gabung Room</button>
+        <button class="tab-btn active" id="tab-create" onclick="App.selectTab('create')" data-i18n="home.tab_create">🚀 Buat Room</button>
+        <button class="tab-btn" id="tab-join" onclick="App.selectTab('join')" data-i18n="home.tab_join">🔗 Gabung Room</button>
       </div>
 
       <div id="join-fields">
         <div class="field">
-          <label for="input-room-code">Kode Room</label>
-          <input type="text" id="input-room-code" placeholder="Contoh: GDX4K2" maxlength="6"
+          <label for="input-room-code" data-i18n="home.room_code_label">Kode Room</label>
+          <input type="text" id="input-room-code" placeholder="Contoh: GDX4K2" data-i18n-ph="home.room_code_ph" maxlength="6"
                  oninput="this.value=this.value.toUpperCase()" autocomplete="off" />
         </div>
       </div>
 
-      <button class="btn btn-primary btn-lg" id="btn-action" onclick="App.handleHomeAction()">
+      <button class="btn btn-primary btn-lg" id="btn-action" onclick="App.handleHomeAction()" data-i18n="home.tab_create">
         🚀 Buat Room
       </button>
     </div>
@@ -533,7 +546,7 @@
       <div class="room-code-display">
         <div class="label">Kode Room</div>
         <div class="code" id="lobby-room-code" onclick="App.copyRoomCode()" title="Klik untuk menyalin">——————</div>
-        <div class="copy-hint">Klik kode untuk menyalin 📋</div>
+        <div class="copy-hint" data-i18n="lobby.copy_hint">Klik kode untuk menyalin 📋</div>
       </div>
       <div class="divider"></div>
       <div style="margin-bottom:10px;">
@@ -543,31 +556,31 @@
     </div>
 
     <div class="card config-section" id="config-section">
-      <h3>⚙️ Pengaturan Game</h3>
+      <h3 data-i18n="lobby.config_title">⚙️ Pengaturan Game</h3>
       <div class="config-grid">
         <div class="config-field">
-          <label for="cfg-min">Angka Min</label>
+          <label for="cfg-min" data-i18n="lobby.min_label">Angka Min</label>
           <input type="number" id="cfg-min" value="1" min="1" max="9999" onchange="App.updateConfig()" />
         </div>
         <div class="config-field">
-          <label for="cfg-max">Angka Max</label>
+          <label for="cfg-max" data-i18n="lobby.max_label">Angka Max</label>
           <input type="number" id="cfg-max" value="100" min="2" max="10000" onchange="App.updateConfig()" />
         </div>
         <div class="config-field">
-          <label for="cfg-attempts">Maks Tebakan</label>
+          <label for="cfg-attempts" data-i18n="lobby.attempts_label">Maks Tebakan</label>
           <input type="number" id="cfg-attempts" value="7" min="1" max="20" onchange="App.updateConfig()" />
         </div>
         <div class="config-field">
-          <label for="cfg-rounds">Jumlah Ronde</label>
+          <label for="cfg-rounds" data-i18n="lobby.rounds_label">Jumlah Ronde</label>
           <input type="number" id="cfg-rounds" value="3" min="1" max="10" onchange="App.updateConfig()" />
         </div>
         <div class="config-field" style="grid-column:span 2">
-          <label>Mode Gameplay</label>
+          <label data-i18n="lobby.mode_label">Mode Gameplay</label>
           <div class="mode-toggle">
-            <button class="mode-btn active" id="mode-classic" onclick="App.setGameMode('classic')">🎯 Klasik — Tebak angka server</button>
-            <button class="mode-btn" id="mode-setguess" onclick="App.setGameMode('setguess')">🎭 Set & Guess — Tebak angka lawan</button>
+            <button class="mode-btn active" id="mode-classic" onclick="App.setGameMode('classic')" data-i18n="lobby.mode_classic">🎯 Klasik — Tebak angka server</button>
+            <button class="mode-btn" id="mode-setguess" onclick="App.setGameMode('setguess')" data-i18n="lobby.mode_setguess">🎭 Set & Guess — Tebak angka lawan</button>
           </div>
-          <div id="mode-hint" style="margin-top:8px;font-size:12px;color:var(--muted2);display:none">
+          <div id="mode-hint" style="margin-top:8px;font-size:12px;color:var(--muted2);display:none" data-i18n-html="lobby.setguess_hint">
             ⚠️ Mode Set & Guess hanya untuk <strong style="color:var(--yellow)">2 pemain</strong>. Pemain ke-3 tidak bisa masuk.
           </div>
         </div>
@@ -575,14 +588,14 @@
     </div>
 
     <div class="lobby-actions">
-      <button class="btn btn-green btn-lg" id="btn-start" onclick="App.startGame()" style="display:none" disabled>
+      <button class="btn btn-green btn-lg" id="btn-start" onclick="App.startGame()" style="display:none" disabled data-i18n="lobby.btn_start">
         🎮 Mulai Game
       </button>
       <div class="waiting-msg" id="waiting-msg" style="display:none">
         <span class="pulse-dot"></span>
-        Menunggu host memulai game...
+        <span data-i18n="lobby.waiting">Menunggu host memulai game...</span>
       </div>
-      <button class="btn btn-secondary btn-lg" onclick="App.leaveRoom()">🚪 Keluar Room</button>
+      <button class="btn btn-secondary btn-lg" onclick="App.leaveRoom()" data-i18n="lobby.btn_leave">🚪 Keluar Room</button>
     </div>
 
   </div>
@@ -602,8 +615,8 @@
         <small id="range-label">Rentang: 1 – 100</small>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="scores-toggle" onclick="App.toggleScores()">🏆 Skor</button>
-        <button class="scores-toggle" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="App.surrender()">🏳️ Menyerah</button>
+        <button class="scores-toggle" onclick="App.toggleScores()" data-i18n="game.scores">🏆 Skor</button>
+        <button class="scores-toggle" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="App.surrender()" data-i18n="game.surrender">🏳️ Menyerah</button>
       </div>
     </div>
 
@@ -614,7 +627,7 @@
 
     <!-- History Log -->
     <div id="history-log">
-      <div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>
+      <div class="history-empty" id="history-empty" data-i18n="game.history_empty">⏳ Menunggu tebakan pertama...</div>
     </div>
 
     <!-- Bottom Bar -->
@@ -632,14 +645,14 @@
           <span id="turn-player-name">—</span>
           <small id="turn-subtitle">menebak...</small>
         </div>
-        <div class="attempts-left">Tebakan: <span id="attempts-left-val">—</span></div>
+        <div class="attempts-left"><span data-i18n="game.attempts">Tebakan</span>: <span id="attempts-left-val">—</span></div>
       </div>
 
       <div class="guess-row" id="guess-row" style="display:none">
         <select class="target-select" id="target-select" style="display:none"></select>
         <input type="number" id="guess-input" placeholder="Masukkan angka..."
                onkeydown="if(event.key==='Enter') App.submitGuess()" />
-        <button class="btn btn-primary" onclick="App.submitGuess()">Tebak!</button>
+        <button class="btn btn-primary" onclick="App.submitGuess()" data-i18n="game.btn_guess">Tebak!</button>
       </div>
     </div>
 
@@ -666,8 +679,8 @@
   <div class="wrapper card fade-up">
     <div class="end-header">
       <span class="trophy">🏆</span>
-      <h2>Game Selesai!</h2>
-      <p>Pemenang: <strong id="final-winner" style="color:var(--yellow)">—</strong></p>
+      <h2 data-i18n="end.title">Game Selesai!</h2>
+      <p><span data-i18n="end.winner">Pemenang</span>: <strong id="final-winner" style="color:var(--yellow)">—</strong></p>
     </div>
 
     <div class="podium" id="podium"></div>
@@ -687,10 +700,10 @@
     </div>
 
     <div class="end-actions">
-      <button class="btn btn-green btn-lg" id="btn-play-again" onclick="App.playAgain()" style="display:none">
+      <button class="btn btn-green btn-lg" id="btn-play-again" onclick="App.playAgain()" style="display:none" data-i18n="end.btn_play_again">
         🔄 Main Lagi
       </button>
-      <button class="btn btn-secondary btn-lg" onclick="App.leaveRoom()">🚪 Keluar Room</button>
+      <button class="btn btn-secondary btn-lg" onclick="App.leaveRoom()" data-i18n="lobby.btn_leave">🚪 Keluar Room</button>
     </div>
   </div>
 </div>
@@ -702,22 +715,28 @@
   <div class="card setting-card fade-up">
     <span class="setting-icon">🔒</span>
     <h2 id="setting-round-label">Ronde 1 — Set Angkamu!</h2>
-    <p>Masukkan angka rahasia yang harus ditebak lawan.<br>Rentang: <strong id="setting-range">1 – 100</strong></p>
+    <p><span data-i18n="setting.desc">Masukkan angka rahasia yang harus ditebak lawan.</span><br><span data-i18n="setting.range_label">Rentang</span>: <strong id="setting-range">1 – 100</strong></p>
     <div class="setting-timer" id="setting-countdown">30</div>
     <div class="setting-progress" id="setting-progress">
-      Menunggu semua pemain... <span id="setting-count">0/0</span>
+      <span data-i18n="setting.waiting">Menunggu semua pemain...</span> <span id="setting-count">0/0</span>
     </div>
     <div id="setting-input-area">
       <div class="guess-row" style="margin-bottom:0">
-        <input type="number" id="secret-input" placeholder="Angka rahasiamu..."
+        <input type="number" id="secret-input" placeholder="Angka rahasiamu..." data-i18n-ph="setting.placeholder"
                onkeydown="if(event.key==='Enter') App.setSecretNumber()" />
-        <button class="btn btn-primary" onclick="App.setSecretNumber()">🔒 Kunci!</button>
+        <button class="btn btn-primary" onclick="App.setSecretNumber()" data-i18n="setting.btn_lock">🔒 Kunci!</button>
       </div>
     </div>
-    <div class="setting-locked" id="setting-locked" style="display:none">
+    <div class="setting-locked" id="setting-locked" style="display:none" data-i18n="setting.locked">
       ✅ Angkamu sudah dikunci! Menunggu pemain lain...
     </div>
   </div>
+</div>
+
+<!-- ── Language Toggle ───────────────────────────────── -->
+<div class="lang-toggle">
+  <button class="lang-btn active" id="lang-id" onclick="App.setLang('id')">🇮🇩 ID</button>
+  <button class="lang-btn" id="lang-en" onclick="App.setLang('en')">🇬🇧 EN</button>
 </div>
 
 <!-- ── Toast Container ────────────────────────────────── -->
@@ -789,20 +808,20 @@ const App = {
     document.getElementById('tab-join').classList.toggle('active', tab === 'join');
     document.getElementById('join-fields').classList.toggle('visible', tab === 'join');
     const btn = document.getElementById('btn-action');
-    btn.innerHTML = tab === 'create' ? '🚀 Buat Room' : '🔗 Gabung Room';
+    btn.textContent = t(tab === 'create' ? 'home.tab_create' : 'home.tab_join');
   },
 
   // ── Home Action ─────────────────────────────────────────
   handleHomeAction() {
     const username = document.getElementById('input-username').value.trim();
-    if (!username) { this.toast('Masukkan username dulu!', 'error'); return; }
+    if (!username) { this.toast(t('toast.username_req'), 'error'); return; }
     this.state.username = username;
 
     if (this.state.activeTab === 'create') {
       this.socket.emit('create_room', { username });
     } else {
       const code = document.getElementById('input-room-code').value.trim().toUpperCase();
-      if (!code || code.length < 6) { this.toast('Masukkan kode room 6 karakter!', 'error'); return; }
+      if (!code || code.length < 6) { this.toast(t('toast.code_req'), 'error'); return; }
       this.socket.emit('join_room', { username, roomCode: code });
     }
   },
@@ -811,9 +830,9 @@ const App = {
   copyRoomCode() {
     const code = this.state.roomCode;
     navigator.clipboard.writeText(code).then(() => {
-      this.toast(`Kode "${code}" disalin!`, 'success', 2000);
+      this.toast(t('toast.copied', { code }), 'success', 2000);
     }).catch(() => {
-      this.toast(`Kode room: ${code}`, 'info');
+      this.toast(t('toast.code_info', { code }), 'info');
     });
   },
 
@@ -834,7 +853,7 @@ const App = {
   // ── Set Game Mode ──────────────────────────────────────
   setGameMode(mode) {
     if (mode === 'setguess' && this.state.players.length > 2) {
-      this.toast('Mode Set & Guess hanya bisa untuk 2 pemain! Kurangi pemain dulu.', 'error', 4000);
+      this.toast(t('toast.setguess_2p'), 'error', 4000);
       return;
     }
     this.state.gameMode = mode;
@@ -871,8 +890,18 @@ const App = {
   },
 
   surrender() {
-    if (!confirm('Yakin ingin menyerah? Game akan diulang dari awal, semua pemain tetap di room.')) return;
+    if (!confirm(t('toast.surrender_confirm'))) return;
     this.socket.emit('surrender', { roomCode: this.state.roomCode });
+  },
+
+  setLang(lang) {
+    _lang = lang;
+    localStorage.setItem('hl_lang', lang);
+    applyLang();
+    // Re-render dynamic UI that's already visible
+    if (this.state.activeTab) this.selectTab(this.state.activeTab);
+    const histEmpty = document.getElementById('history-empty');
+    if (histEmpty) histEmpty.textContent = t('game.history_empty');
   },
 
   playAgain() {
@@ -894,7 +923,7 @@ const App = {
     if (this.state.config.gameMode === 'setguess') {
       // Auto-select the only opponent (always 2-player mode)
       const opponent = this.state.players.find(p => p.id !== this.socket.id);
-      if (!opponent) { this.toast('Tidak ada lawan ditemukan!', 'error'); return; }
+      if (!opponent) { this.toast(t('toast.no_opp'), 'error'); return; }
       payload.targetPlayerId = opponent.id;
     }
     this.socket.emit('submit_guess', payload);
@@ -970,17 +999,19 @@ const App = {
     const empty = document.getElementById('history-empty');
     if (empty) empty.remove();
 
+    const hintCode = entry.hintCode || (entry.correct ? 'correct' : entry.hint?.includes('rendah') || entry.hint?.includes('higher') ? 'low' : 'high');
     let cls = '';
-    if (entry.correct)  cls = 'correct';
-    else if (entry.hint.includes('rendah')) cls = 'low';
-    else if (entry.hint.includes('tinggi')) cls = 'high';
-    if (entry.eliminated) cls = 'elim';
+    if (entry.correct)       cls = 'correct';
+    else if (hintCode === 'low')  cls = 'low';
+    else if (hintCode === 'high') cls = 'high';
+    if (entry.eliminated)    cls = 'elim';
 
+    const hintText = t(`hint.${hintCode}`);
     const initials = entry.player.substring(0, 2).toUpperCase();
     const isSetguess = !!entry.target;
     const playerLabel = isSetguess
       ? `${escHtml(entry.player)} → <span style="color:var(--cyan)">${escHtml(entry.target)}</span>`
-      : `${escHtml(entry.player)} menebak`;
+      : `${escHtml(entry.player)} ${t('game.guessing')}`;
 
     const el = document.createElement('div');
     el.className = `history-entry ${cls}`;
@@ -989,8 +1020,8 @@ const App = {
       <div class="he-body">
         <div class="he-player">${playerLabel}</div>
         <div class="he-guess">${entry.guess}</div>
-        <div class="he-hint">${entry.hint}${entry.eliminated ? ' <span style="color:var(--red);font-size:12px">Habis tebakan!</span>' : ''}</div>
-        ${entry.correct ? `<div class="he-pts">+${entry.points} poin</div>` : ''}
+        <div class="he-hint">${hintText}${entry.eliminated ? ` <span style="color:var(--red);font-size:12px">${t('hint.elim')}</span>` : ''}</div>
+        ${entry.correct ? `<div class="he-pts">+${entry.points} pts</div>` : ''}
       </div>
     `;
     log.appendChild(el);
@@ -999,7 +1030,7 @@ const App = {
 
   rebuildHistory(history) {
     const log = document.getElementById('history-log');
-    log.innerHTML = history.length ? '' : '<div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>';
+    log.innerHTML = history.length ? '' : `<div class="history-empty" id="history-empty" data-i18n="game.history_empty">${t('game.history_empty')}</div>`;
     history.forEach(e => this.appendHistory(e));
   },
 
@@ -1007,12 +1038,12 @@ const App = {
     document.getElementById('overlay-setting').classList.remove('open');
     document.getElementById('round-icon').textContent = data.isDraw ? '🤝' : '🎉';
     document.getElementById('round-title').textContent =
-      data.isDraw ? 'Ronde Seri!' : `${escHtml(data.winner)} menang ronde ini!`;
+      data.isDraw ? t('round.draw') : t('round.winner', { name: data.winner });
 
     // Reveal secret
     if (data.mode === 'setguess' && data.secretsReveal) {
       const secrets = data.secretsReveal.map(s => `${escHtml(s.username)}: <strong style="color:var(--yellow)">${s.secret}</strong>`).join(' &nbsp;|&nbsp; ');
-      document.getElementById('secret-reveal').innerHTML = `Angka rahasia — ${secrets}`;
+      document.getElementById('secret-reveal').innerHTML = t('round.secret_label') + secrets;
     } else {
       document.getElementById('secret-reveal').textContent = data.secretNumber ?? '—';
     }
@@ -1034,8 +1065,8 @@ const App = {
     const isLast = data.round >= data.totalRounds;
     const nextMsg = document.getElementById('round-next-msg');
     nextMsg.innerHTML = isLast
-      ? '<span style="color:var(--yellow)">Game akan segera berakhir...</span>'
-      : `Ronde berikutnya dalam <span id="next-countdown">5</span>s`;
+      ? `<span style="color:var(--yellow)">${t('round.ending')}</span>`
+      : `${t('round.next')} <span id="next-countdown">5</span>s`;
 
     document.getElementById('overlay-round').classList.add('open');
 
@@ -1079,7 +1110,7 @@ const App = {
     const rounds     = data.finalScores[0]?.roundScores?.length || 0;
     const hdrs       = document.getElementById('round-headers-row');
     hdrs.colSpan     = rounds;
-    hdrs.textContent = rounds > 0 ? `Ronde 1–${rounds}` : 'Ronde';
+    hdrs.textContent = rounds > 0 ? t('end.rounds', { n: rounds }) : t('end.rounds', { n: '' }).replace('–', '');
 
     const tbody = document.getElementById('final-tbody');
     tbody.innerHTML = data.finalScores.map((p, i) => {
@@ -1110,11 +1141,11 @@ const App = {
     indicator.classList.toggle('my-turn', isMe);
 
     document.getElementById('turn-player-name').textContent =
-      isMe ? '✨ Giliran kamu!' : `${currentPlayerName} sedang menebak`;
+      isMe ? t('game.my_turn') : `${currentPlayerName} ${t('game.opponent_turn')}`;
     document.getElementById('turn-subtitle').textContent =
       isMe
-        ? (isSetguess ? 'Pilih lawan & tebak angkanya!' : `Kamu punya ${attemptsLeft} tebakan`)
-        : 'Tunggu giliranmu...';
+        ? (isSetguess ? t('game.subtitle_setguess') : t('game.subtitle_classic', { n: attemptsLeft }))
+        : t('game.waiting_turn');
     document.getElementById('attempts-left-val').textContent = isSetguess ? '∞' : (attemptsLeft ?? '—');
 
     const guessRow  = document.getElementById('guess-row');
@@ -1129,7 +1160,7 @@ const App = {
       const input = document.getElementById('guess-input');
       input.min   = this.state.config.min;
       input.max   = this.state.config.max;
-      input.placeholder = `${this.state.config.min} – ${this.state.config.max}`;
+      input.placeholder = t('game.guess_ph', { min: this.state.config.min, max: this.state.config.max });
       input.focus();
     }
 
@@ -1171,7 +1202,7 @@ const App = {
       this.renderPlayerList(players);
       this._updateStartBtn(players.length);
       if (newPlayer && newPlayer !== this.state.username) {
-        this.toast(`${newPlayer} bergabung!`, 'info', 2500);
+        this.toast(t('toast.joined', { player: newPlayer }), 'info', 2500);
       }
     });
 
@@ -1200,15 +1231,15 @@ const App = {
       document.getElementById('btn-start').style.display   = wasHost ? '' : 'none';
       document.getElementById('waiting-msg').style.display = wasHost ? 'none' : '';
       document.getElementById('config-section').style.display = wasHost ? '' : 'none';
-      if (wasHost) this.toast('Kamu sekarang menjadi host!', 'success');
-      else this.toast(`${newHost} sekarang menjadi host`, 'info');
+      if (wasHost) this.toast(t('toast.host_you'), 'success');
+      else this.toast(t('toast.host_other', { name: newHost }), 'info');
     });
 
     s.on('player_left', ({ players, leftPlayer }) => {
       this.state.players = players;
       this.renderPlayerList(players);
       this._updateStartBtn(players.length);
-      this.toast(`${leftPlayer} keluar dari room`, 'info', 3000);
+      this.toast(t('toast.left', { player: leftPlayer }), 'info', 3000);
     });
 
     s.on('game_started', ({ config, players }) => {
@@ -1216,11 +1247,11 @@ const App = {
       this.state.players = players;
       document.getElementById('game-room-code').textContent = this.state.roomCode;
       document.getElementById('range-label').textContent =
-        `Rentang: ${config.min} – ${config.max}`;
+        `${t('game.range')}: ${config.min} – ${config.max}`;
       document.getElementById('round-label').textContent =
         `Ronde — / ${config.totalRounds}`;
       document.getElementById('history-log').innerHTML =
-        '<div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>';
+        `<div class="history-empty" id="history-empty" data-i18n="game.history_empty">${t('game.history_empty')}</div>`;
       document.getElementById('overlay-round').classList.remove('open');
       this.renderScorePanel(players);
       this.showScreen('game');
@@ -1237,7 +1268,7 @@ const App = {
       document.getElementById('secret-input').value = '';
       document.getElementById('secret-input').min = config.min;
       document.getElementById('secret-input').max = config.max;
-      document.getElementById('secret-input').placeholder = `${config.min} – ${config.max}`;
+      document.getElementById('secret-input').placeholder = t('game.guess_ph', { min: config.min, max: config.max });
       document.getElementById('overlay-setting').classList.add('open');
 
       // Countdown timer
@@ -1268,9 +1299,9 @@ const App = {
       this.state.players      = players;
       document.getElementById('round-label').textContent = `Ronde ${round} / ${totalRounds}`;
       document.getElementById('range-label').textContent =
-        `Rentang: ${config.min} – ${config.max}${mode === 'setguess' ? ' 🎭' : ''}`;
+        `${t('game.range')}: ${config.min} – ${config.max}${mode === 'setguess' ? ' 🎭' : ''}`;
       document.getElementById('history-log').innerHTML =
-        '<div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>';
+        `<div class="history-empty" id="history-empty" data-i18n="game.history_empty">${t('game.history_empty')}</div>`;
       document.getElementById('overlay-round').classList.remove('open');
       document.getElementById('overlay-setting').classList.remove('open');
       if (this._settingCountdown) { clearInterval(this._settingCountdown); this._settingCountdown = null; }
@@ -1278,8 +1309,8 @@ const App = {
       this.state.myTurn = false;
       this.stopTimer();
       this.renderScorePanel(players);
-      const modeLabel = mode === 'setguess' ? '🎭 Set & Guess' : '🎯 Klasik';
-      this.toast(`Ronde ${round} dimulai! ${modeLabel}`, 'info', 2500);
+      const modeLabel = t(mode === 'setguess' ? 'toast.mode_setguess' : 'toast.mode_classic');
+      this.toast(t('toast.round_start', { n: round, mode: modeLabel }), 'info', 2500);
     });
 
     s.on('turn_changed', ({ currentPlayerId, currentPlayer, attemptsLeft, targets }) => {
@@ -1287,12 +1318,12 @@ const App = {
     });
 
     s.on('your_turn', ({ attemptsLeft }) => {
-      this.toast('Giliran kamu! Tebak sekarang 🎯', 'success', 2000);
+      this.toast(t('toast.my_turn'), 'success', 2000);
     });
 
-    s.on('guess_result', ({ player, target, guess, hint, correct, points, attemptsLeft, eliminated, players, guessHistory }) => {
+    s.on('guess_result', ({ player, target, guess, hint, hintCode, correct, points, attemptsLeft, eliminated, players, guessHistory }) => {
       this.state.players = players;
-      this.appendHistory({ player, target, guess, hint, correct, points, eliminated });
+      this.appendHistory({ player, target, guess, hint, hintCode, correct, points, eliminated });
       this.renderScorePanel(players);
 
       if (correct) {
@@ -1303,13 +1334,13 @@ const App = {
         // Update attempts for the active player if it was us
         if (this.state.myTurn) {
           document.getElementById('attempts-left-val').textContent = attemptsLeft;
-          document.getElementById('turn-subtitle').textContent = `Kamu punya ${attemptsLeft} tebakan`;
+          document.getElementById('turn-subtitle').textContent = t('game.subtitle_classic', { n: attemptsLeft });
         }
       }
     });
 
     s.on('turn_timeout', ({ player }) => {
-      this.toast(`⏰ ${player} kehabisan waktu — giliran dilewati`, 'info', 3000);
+      this.toast(t('toast.timeout', { player }), 'info', 3000);
       this.stopTimer();
       this.state.myTurn = false;
       document.getElementById('guess-row').style.display = 'none';
@@ -1346,8 +1377,8 @@ const App = {
       this.stopTimer();
       this._enterLobby(players, config, this.state.isHost);
       const msg = surrenderedBy
-        ? `🏳️ ${surrenderedBy} menyerah! Siap main lagi.`
-        : '🔄 Game direset! Siap main lagi.';
+        ? t('toast.surrendered', { name: surrenderedBy })
+        : t('toast.reset');
       this.toast(msg, surrenderedBy ? 'info' : 'success', 3000);
     });
 
@@ -1356,10 +1387,10 @@ const App = {
     });
 
     s.on('disconnect', () => {
-      this.toast('Koneksi terputus. Mencoba reconnect...', 'error', 5000);
+      this.toast(t('toast.disconnected'), 'error', 5000);
     });
     s.on('connect', () => {
-      if (this.state.roomCode) this.toast('Terhubung kembali!', 'success', 2000);
+      if (this.state.roomCode) this.toast(t('toast.reconnected'), 'success', 2000);
     });
   },
 
@@ -1400,8 +1431,184 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── i18n ──────────────────────────────────────────────────
+const LANG = {
+  id: {
+    'home.subtitle':       'Tebak angka rahasia bersama teman-temanmu!',
+    'home.username_label': 'Username kamu',
+    'home.username_ph':    'Masukkan nama...',
+    'home.tab_create':     '🚀 Buat Room',
+    'home.tab_join':       '🔗 Gabung Room',
+    'home.room_code_label':'Kode Room',
+    'home.room_code_ph':   'Contoh: GDX4K2',
+    'lobby.copy_hint':     'Klik kode untuk menyalin 📋',
+    'lobby.config_title':  '⚙️ Pengaturan Game',
+    'lobby.min_label':     'Angka Min',
+    'lobby.max_label':     'Angka Max',
+    'lobby.attempts_label':'Maks Tebakan',
+    'lobby.rounds_label':  'Jumlah Ronde',
+    'lobby.mode_label':    'Mode Gameplay',
+    'lobby.mode_classic':  '🎯 Klasik — Tebak angka server',
+    'lobby.mode_setguess': '🎭 Set & Guess — Tebak angka lawan',
+    'lobby.setguess_hint': '⚠️ Mode Set & Guess hanya untuk <strong style="color:var(--yellow)">2 pemain</strong>. Pemain ke-3 tidak bisa masuk.',
+    'lobby.btn_start':     '🎮 Mulai Game',
+    'lobby.waiting':       'Menunggu host memulai game...',
+    'lobby.btn_leave':     '🚪 Keluar Room',
+    'game.scores':         '🏆 Skor',
+    'game.surrender':      '🏳️ Menyerah',
+    'game.attempts':       'Tebakan',
+    'game.btn_guess':      'Tebak!',
+    'game.history_empty':  '⏳ Menunggu tebakan pertama...',
+    'game.my_turn':        '✨ Giliran kamu!',
+    'game.opponent_turn':  'sedang menebak',
+    'game.waiting_turn':   'Tunggu giliranmu...',
+    'game.subtitle_setguess': 'Tebak angka lawan!',
+    'game.subtitle_classic':  'Kamu punya {n} tebakan',
+    'game.range':          'Rentang',
+    'game.guess_ph':       '{min} – {max}',
+    'hint.low':            '🔼 Lebih rendah!',
+    'hint.high':           '🔽 Lebih tinggi!',
+    'hint.correct':        '✅ BENAR!',
+    'hint.elim':           'Habis tebakan!',
+    'game.guessing':       'menebak',
+    'setting.desc':        'Masukkan angka rahasia yang harus ditebak lawan.',
+    'setting.range_label': 'Rentang',
+    'setting.waiting':     'Menunggu semua pemain...',
+    'setting.locked':      '✅ Angkamu sudah dikunci! Menunggu pemain lain...',
+    'setting.placeholder': 'Angka rahasiamu...',
+    'setting.btn_lock':    '🔒 Kunci!',
+    'round.draw':          'Ronde Seri!',
+    'round.winner':        '{name} menang ronde ini!',
+    'round.secret_label':  'Angka rahasia — ',
+    'round.next':          'Ronde berikutnya dalam',
+    'round.ending':        'Game akan segera berakhir...',
+    'end.title':           'Game Selesai!',
+    'end.winner':          'Pemenang',
+    'end.rounds':          'Ronde 1–{n}',
+    'end.btn_play_again':  '🔄 Main Lagi',
+    'toast.username_req':  'Masukkan username dulu!',
+    'toast.code_req':      'Masukkan kode room 6 karakter!',
+    'toast.copied':        'Kode "{code}" disalin!',
+    'toast.code_info':     'Kode room: {code}',
+    'toast.my_turn':       'Giliran kamu! Tebak sekarang 🎯',
+    'toast.timeout':       '⏰ {player} kehabisan waktu — giliran dilewati',
+    'toast.joined':        '{player} bergabung!',
+    'toast.left':          '{player} keluar dari room',
+    'toast.host_you':      'Kamu sekarang menjadi host!',
+    'toast.host_other':    '{name} sekarang menjadi host',
+    'toast.round_start':   'Ronde {n} dimulai! {mode}',
+    'toast.mode_classic':  '🎯 Klasik',
+    'toast.mode_setguess': '🎭 Set & Guess',
+    'toast.disconnected':  'Koneksi terputus. Mencoba reconnect...',
+    'toast.reconnected':   'Terhubung kembali!',
+    'toast.no_opp':        'Tidak ada lawan ditemukan!',
+    'toast.surrender_confirm': 'Yakin ingin menyerah? Game akan diulang dari awal, semua pemain tetap di room.',
+    'toast.surrendered':   '🏳️ {name} menyerah! Siap main lagi.',
+    'toast.reset':         '🔄 Game direset! Siap main lagi.',
+    'toast.setguess_2p':   'Mode Set & Guess hanya bisa untuk 2 pemain! Kurangi pemain dulu.',
+  },
+  en: {
+    'home.subtitle':       'Guess the secret number with your friends!',
+    'home.username_label': 'Your username',
+    'home.username_ph':    'Enter your name...',
+    'home.tab_create':     '🚀 Create Room',
+    'home.tab_join':       '🔗 Join Room',
+    'home.room_code_label':'Room Code',
+    'home.room_code_ph':   'e.g. GDX4K2',
+    'lobby.copy_hint':     'Click code to copy 📋',
+    'lobby.config_title':  '⚙️ Game Settings',
+    'lobby.min_label':     'Min Number',
+    'lobby.max_label':     'Max Number',
+    'lobby.attempts_label':'Max Guesses',
+    'lobby.rounds_label':  'Rounds',
+    'lobby.mode_label':    'Gameplay Mode',
+    'lobby.mode_classic':  '🎯 Classic — Guess server\'s number',
+    'lobby.mode_setguess': '🎭 Set & Guess — Guess opponent\'s number',
+    'lobby.setguess_hint': '⚠️ Set & Guess is for <strong style="color:var(--yellow)">2 players</strong> only. 3rd player cannot join.',
+    'lobby.btn_start':     '🎮 Start Game',
+    'lobby.waiting':       'Waiting for host to start...',
+    'lobby.btn_leave':     '🚪 Leave Room',
+    'game.scores':         '🏆 Score',
+    'game.surrender':      '🏳️ Surrender',
+    'game.attempts':       'Guesses',
+    'game.btn_guess':      'Guess!',
+    'game.history_empty':  '⏳ Waiting for the first guess...',
+    'game.my_turn':        '✨ Your turn!',
+    'game.opponent_turn':  'is guessing',
+    'game.waiting_turn':   'Wait for your turn...',
+    'game.subtitle_setguess': 'Guess your opponent\'s number!',
+    'game.subtitle_classic':  'You have {n} guesses',
+    'game.range':          'Range',
+    'game.guess_ph':       '{min} – {max}',
+    'hint.low':            '🔼 Go higher!',
+    'hint.high':           '🔽 Go lower!',
+    'hint.correct':        '✅ CORRECT!',
+    'hint.elim':           'Out of guesses!',
+    'game.guessing':       'guessing',
+    'setting.desc':        'Enter the secret number your opponent must guess.',
+    'setting.range_label': 'Range',
+    'setting.waiting':     'Waiting for all players...',
+    'setting.locked':      '✅ Your number is locked! Waiting for others...',
+    'setting.placeholder': 'Your secret number...',
+    'setting.btn_lock':    '🔒 Lock it!',
+    'round.draw':          'Round Draw!',
+    'round.winner':        '{name} wins this round!',
+    'round.secret_label':  'Secret number — ',
+    'round.next':          'Next round in',
+    'round.ending':        'Game ending soon...',
+    'end.title':           'Game Over!',
+    'end.winner':          'Winner',
+    'end.rounds':          'Rounds 1–{n}',
+    'end.btn_play_again':  '🔄 Play Again',
+    'toast.username_req':  'Please enter a username!',
+    'toast.code_req':      'Enter a 6-character room code!',
+    'toast.copied':        'Code "{code}" copied!',
+    'toast.code_info':     'Room code: {code}',
+    'toast.my_turn':       'Your turn! Guess now 🎯',
+    'toast.timeout':       '⏰ {player} ran out of time — turn skipped',
+    'toast.joined':        '{player} joined!',
+    'toast.left':          '{player} left the room',
+    'toast.host_you':      'You are now the host!',
+    'toast.host_other':    '{name} is now the host',
+    'toast.round_start':   'Round {n} started! {mode}',
+    'toast.mode_classic':  '🎯 Classic',
+    'toast.mode_setguess': '🎭 Set & Guess',
+    'toast.disconnected':  'Disconnected. Trying to reconnect...',
+    'toast.reconnected':   'Reconnected!',
+    'toast.no_opp':        'No opponent found!',
+    'toast.surrender_confirm': 'Sure you want to surrender? The game restarts and all players stay in the room.',
+    'toast.surrendered':   '🏳️ {name} surrendered! Ready to play again.',
+    'toast.reset':         '🔄 Game reset! Ready to play again.',
+    'toast.setguess_2p':   'Set & Guess is for 2 players only! Remove players first.',
+  }
+};
+
+let _lang = localStorage.getItem('hl_lang') || 'id';
+
+function t(key, vars = {}) {
+  let str = (LANG[_lang] || LANG.id)[key] || (LANG.id[key]) || key;
+  Object.entries(vars).forEach(([k, v]) => { str = str.replaceAll(`{${k}}`, v); });
+  return str;
+}
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  // Update lang toggle buttons
+  document.getElementById('lang-id').classList.toggle('active', _lang === 'id');
+  document.getElementById('lang-en').classList.toggle('active', _lang === 'en');
+}
+
 // ── Boot ──────────────────────────────────────────────────
 App.init();
+applyLang();
 </script>
 </body>
 </html>
