@@ -260,13 +260,12 @@
       background: var(--card); color: var(--text); white-space: nowrap;
     }
 
-    /* Scoreboard panel */
+    /* Scoreboard panel — always visible */
     #score-panel {
       flex-shrink: 0;
       background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border);
-      padding: 10px 16px; display: none;
+      padding: 10px 16px;
     }
-    #score-panel.open { display: block; }
     .score-list { display: flex; flex-wrap: wrap; gap: 8px; }
     .score-item {
       display: flex; align-items: center; gap: 6px;
@@ -626,7 +625,6 @@
         <small id="range-label">Rentang: 1 – 100</small>
       </div>
       <div class="topbar-actions">
-        <button class="scores-toggle" onclick="App.toggleScores()" data-i18n="game.scores">🏆 Skor</button>
         <button class="scores-toggle" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="App.surrender()" data-i18n="game.surrender">🏳️ Menyerah</button>
       </div>
     </div>
@@ -911,10 +909,6 @@ const App = {
 
   playAgain() {
     this.socket.emit('play_again', { roomCode: this.state.roomCode });
-  },
-
-  toggleScores() {
-    document.getElementById('score-panel').classList.toggle('open');
   },
 
   // ── Submit Guess ─────────────────────────────────────────
