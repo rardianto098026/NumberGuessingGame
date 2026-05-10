@@ -242,19 +242,20 @@
 
     /* Top bar */
     .game-topbar {
-      padding: 12px 16px;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
-    .topbar-room { font-size: 12px; color: var(--muted2); }
-    .topbar-room span { color: var(--accent2); font-weight: 700; }
+    .topbar-room { font-size: 11px; color: var(--muted2); min-width: 0; }
+    .topbar-room span { color: var(--accent2); font-weight: 700; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80px; }
     .topbar-round {
-      font-size: 14px; font-weight: 700; text-align: center;
+      font-size: 13px; font-weight: 700; text-align: center; flex: 1;
     }
-    .topbar-round small { display: block; font-size: 11px; color: var(--muted2); font-weight: 400; }
+    .topbar-round small { display: block; font-size: 10px; color: var(--muted2); font-weight: 400; }
+    .topbar-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
     .scores-toggle {
-      padding: 6px 12px; border-radius: 6px;
+      padding: 5px 10px; border-radius: 6px;
       font-size: 12px; cursor: pointer; border: 1px solid var(--border);
       background: var(--card); color: var(--text); white-space: nowrap;
     }
@@ -477,11 +478,11 @@
 
     /* ── Language Toggle ────────────────────────────────── */
     .lang-toggle {
-      position: fixed; top: 14px; right: 16px; z-index: 9990;
-      display: flex; gap: 4px; align-items: center;
+      display: flex; gap: 6px; align-items: center; justify-content: center;
+      margin-top: 14px;
     }
     .lang-btn {
-      padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;
+      padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
       cursor: pointer; border: 1px solid var(--border);
       background: transparent; color: var(--muted2); transition: all .18s;
       letter-spacing: .5px;
@@ -494,6 +495,12 @@
       .room-code-display .code { font-size: 30px; letter-spacing: 5px; }
       .podium { gap: 4px; }
       .podium-avatar { width: 38px; height: 38px; font-size: 14px; }
+    }
+    /* Compact topbar on very narrow screens */
+    @media (max-width: 400px) {
+      .topbar-room { display: none; }
+      .topbar-round { font-size: 12px; }
+      .scores-toggle { padding: 5px 8px; font-size: 11px; }
     }
   </style>
 </head>
@@ -508,6 +515,10 @@
       <span class="icon">🎯</span>
       <h1>Higher or Lower</h1>
       <p data-i18n="home.subtitle">Tebak angka rahasia bersama teman-temanmu!</p>
+      <div class="lang-toggle" style="margin-top:12px">
+        <button class="lang-btn active" id="lang-id" onclick="App.setLang('id')">🇮🇩 ID</button>
+        <button class="lang-btn" id="lang-en" onclick="App.setLang('en')">🇬🇧 EN</button>
+      </div>
     </div>
 
     <div class="card home-card">
@@ -614,7 +625,7 @@
         <span id="round-label">Ronde 1 / 3</span>
         <small id="range-label">Rentang: 1 – 100</small>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div class="topbar-actions">
         <button class="scores-toggle" onclick="App.toggleScores()" data-i18n="game.scores">🏆 Skor</button>
         <button class="scores-toggle" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="App.surrender()" data-i18n="game.surrender">🏳️ Menyerah</button>
       </div>
@@ -731,12 +742,6 @@
       ✅ Angkamu sudah dikunci! Menunggu pemain lain...
     </div>
   </div>
-</div>
-
-<!-- ── Language Toggle ───────────────────────────────── -->
-<div class="lang-toggle">
-  <button class="lang-btn active" id="lang-id" onclick="App.setLang('id')">🇮🇩 ID</button>
-  <button class="lang-btn" id="lang-en" onclick="App.setLang('en')">🇬🇧 EN</button>
 </div>
 
 <!-- ── Toast Container ────────────────────────────────── -->
@@ -1272,14 +1277,14 @@ const App = {
       document.getElementById('overlay-setting').classList.add('open');
 
       // Countdown timer
-      let t = timeLimit || 30;
-      document.getElementById('setting-countdown').textContent = t;
+      let secs = timeLimit || 30;
+      document.getElementById('setting-countdown').textContent = secs;
       if (this._settingCountdown) clearInterval(this._settingCountdown);
       this._settingCountdown = setInterval(() => {
-        t--;
+        secs--;
         const el = document.getElementById('setting-countdown');
-        if (el) el.textContent = t;
-        if (t <= 0) { clearInterval(this._settingCountdown); this._settingCountdown = null; }
+        if (el) el.textContent = secs;
+        if (secs <= 0) { clearInterval(this._settingCountdown); this._settingCountdown = null; }
       }, 1000);
     });
 
