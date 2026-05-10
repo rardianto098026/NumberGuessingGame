@@ -427,6 +427,54 @@
     }
     @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.25)} 100%{transform:scale(1)} }
 
+    /* ── Mode Toggle ────────────────────────────────────── */
+    .mode-toggle { display: flex; gap: 8px; }
+    .mode-btn {
+      flex: 1; padding: 10px 12px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted2); transition: all .2s; text-align: center;
+    }
+    .mode-btn.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-color: var(--accent); }
+
+    /* ── Number Setting Overlay ─────────────────────────── */
+    #overlay-setting {
+      position: fixed; inset: 0; z-index: 900;
+      background: rgba(7,8,15,.92); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+      opacity: 0; pointer-events: none; transition: opacity .3s ease;
+    }
+    #overlay-setting.open { opacity: 1; pointer-events: all; }
+    .setting-card { width: 100%; max-width: 400px; padding: 28px; text-align: center; }
+    .setting-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+    .setting-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .setting-card p  { color: var(--muted2); font-size: 14px; margin-bottom: 20px; }
+    .setting-progress {
+      padding: 10px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,.04); border: 1px solid var(--border);
+      font-size: 13px; color: var(--muted2); margin-bottom: 16px;
+    }
+    .setting-progress span { color: var(--cyan); font-weight: 700; }
+    .setting-locked {
+      padding: 16px; border-radius: var(--radius-sm);
+      background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3);
+      color: var(--green); font-weight: 600; font-size: 14px;
+    }
+    .setting-timer {
+      font-size: 28px; font-weight: 900; color: var(--yellow);
+      margin-bottom: 8px;
+    }
+
+    /* ── Target Selector ────────────────────────────────── */
+    .target-select {
+      width: 100%; padding: 11px 14px;
+      background: rgba(255,255,255,.06); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); font-size: 14px;
+      outline: none; cursor: pointer;
+    }
+    .target-select:focus { border-color: var(--accent2); }
+    option { background: #1e1e2e; }
+
     /* ── Responsive ─────────────────────────────────────── */
     @media (max-width: 480px) {
       .config-grid { grid-template-columns: 1fr 1fr; }
@@ -513,6 +561,13 @@
           <label for="cfg-rounds">Jumlah Ronde</label>
           <input type="number" id="cfg-rounds" value="3" min="1" max="10" onchange="App.updateConfig()" />
         </div>
+        <div class="config-field" style="grid-column:span 2">
+          <label>Mode Gameplay</label>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="mode-classic" onclick="App.setGameMode('classic')">🎯 Klasik — Tebak angka server</button>
+            <button class="mode-btn" id="mode-setguess" onclick="App.setGameMode('setguess')">🎭 Set & Guess — Tebak angka lawan</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -575,6 +630,7 @@
       </div>
 
       <div class="guess-row" id="guess-row" style="display:none">
+        <select class="target-select" id="target-select" style="display:none"></select>
         <input type="number" id="guess-input" placeholder="Masukkan angka..."
                onkeydown="if(event.key==='Enter') App.submitGuess()" />
         <button class="btn btn-primary" onclick="App.submitGuess()">Tebak!</button>
@@ -629,6 +685,31 @@
         🔄 Main Lagi
       </button>
       <button class="btn btn-secondary btn-lg" onclick="App.leaveRoom()">🚪 Keluar Room</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     OVERLAY: NUMBER SETTING (Set & Guess mode)
+════════════════════════════════════════════════════════ -->
+<div id="overlay-setting">
+  <div class="card setting-card fade-up">
+    <span class="setting-icon">🔒</span>
+    <h2 id="setting-round-label">Ronde 1 — Set Angkamu!</h2>
+    <p>Masukkan angka rahasia yang harus ditebak lawan.<br>Rentang: <strong id="setting-range">1 – 100</strong></p>
+    <div class="setting-timer" id="setting-countdown">30</div>
+    <div class="setting-progress" id="setting-progress">
+      Menunggu semua pemain... <span id="setting-count">0/0</span>
+    </div>
+    <div id="setting-input-area">
+      <div class="guess-row" style="margin-bottom:0">
+        <input type="number" id="secret-input" placeholder="Angka rahasiamu..."
+               onkeydown="if(event.key==='Enter') App.setSecretNumber()" />
+        <button class="btn btn-primary" onclick="App.setSecretNumber()">🔒 Kunci!</button>
+      </div>
+    </div>
+    <div class="setting-locked" id="setting-locked" style="display:none">
+      ✅ Angkamu sudah dikunci! Menunggu pemain lain...
     </div>
   </div>
 </div>
@@ -739,8 +820,32 @@ const App = {
         max:         parseInt(document.getElementById('cfg-max').value),
         maxAttempts: parseInt(document.getElementById('cfg-attempts').value),
         totalRounds: parseInt(document.getElementById('cfg-rounds').value),
+        gameMode:    this.state.gameMode || 'classic',
       }
     });
+  },
+
+  // ── Set Game Mode ──────────────────────────────────────
+  setGameMode(mode) {
+    this.state.gameMode = mode;
+    document.getElementById('mode-classic').classList.toggle('active', mode === 'classic');
+    document.getElementById('mode-setguess').classList.toggle('active', mode === 'setguess');
+    this.updateConfig();
+  },
+
+  // ── Set Secret Number (Set & Guess) ───────────────────
+  setSecretNumber() {
+    const input = document.getElementById('secret-input');
+    const val   = parseInt(input.value.trim());
+    const min   = this.state.config.min;
+    const max   = this.state.config.max;
+    if (isNaN(val) || val < min || val > max) {
+      this.toast(`Angka harus antara ${min}–${max}!`, 'error'); return;
+    }
+    this.socket.emit('set_number', { roomCode: this.state.roomCode, number: val });
+    document.getElementById('setting-input-area').style.display = 'none';
+    document.getElementById('setting-locked').style.display = '';
+    input.value = '';
   },
 
   startGame() {
@@ -767,7 +872,14 @@ const App = {
     const input = document.getElementById('guess-input');
     const val   = input.value.trim();
     if (!val) return;
-    this.socket.emit('submit_guess', { roomCode: this.state.roomCode, guess: parseInt(val) });
+
+    const payload = { roomCode: this.state.roomCode, guess: parseInt(val) };
+    if (this.state.config.gameMode === 'setguess') {
+      const sel = document.getElementById('target-select');
+      if (!sel.value) { this.toast('Pilih lawan yang ingin kamu tebak!', 'error'); return; }
+      payload.targetPlayerId = sel.value;
+    }
+    this.socket.emit('submit_guess', payload);
     input.value = '';
   },
 
@@ -847,12 +959,17 @@ const App = {
     if (entry.eliminated) cls = 'elim';
 
     const initials = entry.player.substring(0, 2).toUpperCase();
+    const isSetguess = !!entry.target;
+    const playerLabel = isSetguess
+      ? `${escHtml(entry.player)} → <span style="color:var(--cyan)">${escHtml(entry.target)}</span>`
+      : `${escHtml(entry.player)} menebak`;
+
     const el = document.createElement('div');
     el.className = `history-entry ${cls}`;
     el.innerHTML = `
       <div class="he-avatar">${initials}</div>
       <div class="he-body">
-        <div class="he-player">${escHtml(entry.player)} menebak</div>
+        <div class="he-player">${playerLabel}</div>
         <div class="he-guess">${entry.guess}</div>
         <div class="he-hint">${entry.hint}${entry.eliminated ? ' <span style="color:var(--red);font-size:12px">Habis tebakan!</span>' : ''}</div>
         ${entry.correct ? `<div class="he-pts">+${entry.points} poin</div>` : ''}
@@ -869,10 +986,18 @@ const App = {
   },
 
   renderRoundEnd(data) {
+    document.getElementById('overlay-setting').classList.remove('open');
     document.getElementById('round-icon').textContent = data.isDraw ? '🤝' : '🎉';
     document.getElementById('round-title').textContent =
       data.isDraw ? 'Ronde Seri!' : `${escHtml(data.winner)} menang ronde ini!`;
-    document.getElementById('secret-reveal').textContent = data.secretNumber;
+
+    // Reveal secret
+    if (data.mode === 'setguess' && data.secretsReveal) {
+      const secrets = data.secretsReveal.map(s => `${escHtml(s.username)}: <strong style="color:var(--yellow)">${s.secret}</strong>`).join(' &nbsp;|&nbsp; ');
+      document.getElementById('secret-reveal').innerHTML = `Angka rahasia — ${secrets}`;
+    } else {
+      document.getElementById('secret-reveal').textContent = data.secretNumber ?? '—';
+    }
 
     const medals = ['🥇','🥈','🥉'];
     const list   = document.getElementById('round-scores-list');
@@ -958,8 +1083,9 @@ const App = {
   },
 
   // ── Update turn UI ───────────────────────────────────────
-  updateTurnUI(currentPlayerId, currentPlayerName, attemptsLeft) {
-    const isMe = currentPlayerId === this.socket.id;
+  updateTurnUI(currentPlayerId, currentPlayerName, attemptsLeft, targets = []) {
+    const isMe    = currentPlayerId === this.socket.id;
+    const isSetguess = this.state.config.gameMode === 'setguess';
     this.state.myTurn = isMe;
 
     const indicator = document.getElementById('turn-indicator');
@@ -968,12 +1094,26 @@ const App = {
     document.getElementById('turn-player-name').textContent =
       isMe ? '✨ Giliran kamu!' : `${currentPlayerName} sedang menebak`;
     document.getElementById('turn-subtitle').textContent =
-      isMe ? `Kamu punya ${attemptsLeft} tebakan` : 'Tunggu giliranmu...';
-    document.getElementById('attempts-left-val').textContent = attemptsLeft;
+      isMe
+        ? (isSetguess ? 'Pilih lawan & tebak angkanya!' : `Kamu punya ${attemptsLeft} tebakan`)
+        : 'Tunggu giliranmu...';
+    document.getElementById('attempts-left-val').textContent = isSetguess ? '∞' : (attemptsLeft ?? '—');
 
-    const guessRow = document.getElementById('guess-row');
+    const guessRow  = document.getElementById('guess-row');
+    const targetSel = document.getElementById('target-select');
+
     guessRow.style.display = isMe ? 'flex' : 'none';
+
     if (isMe) {
+      // Target selector (setguess only)
+      if (isSetguess && targets.length > 0) {
+        targetSel.style.display = '';
+        targetSel.innerHTML = `<option value="">— Pilih lawan —</option>` +
+          targets.map(t => `<option value="${t.id}">${escHtml(t.username)}</option>`).join('');
+      } else {
+        targetSel.style.display = 'none';
+      }
+
       const input = document.getElementById('guess-input');
       input.min   = this.state.config.min;
       input.max   = this.state.config.max;
@@ -1024,13 +1164,18 @@ const App = {
     });
 
     s.on('config_updated', ({ config }) => {
-      this.state.config = config;
+      this.state.config  = config;
+      this.state.gameMode = config.gameMode || 'classic';
       if (!this.state.isHost) {
         document.getElementById('cfg-min').value      = config.min;
         document.getElementById('cfg-max').value      = config.max;
         document.getElementById('cfg-attempts').value = config.maxAttempts;
         document.getElementById('cfg-rounds').value   = config.totalRounds;
       }
+      // Always sync mode toggle (host + non-host)
+      const mode = config.gameMode || 'classic';
+      document.getElementById('mode-classic').classList.toggle('active', mode === 'classic');
+      document.getElementById('mode-setguess').classList.toggle('active', mode === 'setguess');
     });
 
     s.on('host_changed', ({ newHostId, newHost }) => {
@@ -1067,34 +1212,73 @@ const App = {
       this.showScreen('game');
     });
 
-    s.on('round_started', ({ round, totalRounds, config, players }) => {
+    // ── Set & Guess: Number Setting Phase ─────────────────
+    s.on('number_setting_phase', ({ round, totalRounds, config, timeLimit }) => {
+      this.state.config = config;
+      document.getElementById('setting-round-label').textContent = `Ronde ${round}/${totalRounds} — Set Angkamu!`;
+      document.getElementById('setting-range').textContent = `${config.min} – ${config.max}`;
+      document.getElementById('setting-count').textContent = `0/${this.state.players.length}`;
+      document.getElementById('setting-input-area').style.display = '';
+      document.getElementById('setting-locked').style.display = 'none';
+      document.getElementById('secret-input').value = '';
+      document.getElementById('secret-input').min = config.min;
+      document.getElementById('secret-input').max = config.max;
+      document.getElementById('secret-input').placeholder = `${config.min} – ${config.max}`;
+      document.getElementById('overlay-setting').classList.add('open');
+
+      // Countdown timer
+      let t = timeLimit || 30;
+      document.getElementById('setting-countdown').textContent = t;
+      if (this._settingCountdown) clearInterval(this._settingCountdown);
+      this._settingCountdown = setInterval(() => {
+        t--;
+        const el = document.getElementById('setting-countdown');
+        if (el) el.textContent = t;
+        if (t <= 0) { clearInterval(this._settingCountdown); this._settingCountdown = null; }
+      }, 1000);
+    });
+
+    s.on('number_set_confirmed', () => {
+      // Already handled in setSecretNumber()
+    });
+
+    s.on('number_setting_progress', ({ set, total }) => {
+      const el = document.getElementById('setting-count');
+      if (el) el.textContent = `${set}/${total}`;
+    });
+
+    s.on('round_started', ({ round, totalRounds, config, players, mode }) => {
       this.state.currentRound = round;
       this.state.totalRounds  = totalRounds;
       this.state.config       = config;
       this.state.players      = players;
       document.getElementById('round-label').textContent = `Ronde ${round} / ${totalRounds}`;
-      document.getElementById('range-label').textContent = `Rentang: ${config.min} – ${config.max}`;
+      document.getElementById('range-label').textContent =
+        `Rentang: ${config.min} – ${config.max}${mode === 'setguess' ? ' 🎭' : ''}`;
       document.getElementById('history-log').innerHTML =
         '<div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>';
       document.getElementById('overlay-round').classList.remove('open');
+      document.getElementById('overlay-setting').classList.remove('open');
+      if (this._settingCountdown) { clearInterval(this._settingCountdown); this._settingCountdown = null; }
       document.getElementById('guess-row').style.display = 'none';
       this.state.myTurn = false;
       this.stopTimer();
       this.renderScorePanel(players);
-      this.toast(`Ronde ${round} dimulai! 🎯`, 'info', 2500);
+      const modeLabel = mode === 'setguess' ? '🎭 Set & Guess' : '🎯 Klasik';
+      this.toast(`Ronde ${round} dimulai! ${modeLabel}`, 'info', 2500);
     });
 
-    s.on('turn_changed', ({ currentPlayerId, currentPlayer, attemptsLeft }) => {
-      this.updateTurnUI(currentPlayerId, currentPlayer, attemptsLeft);
+    s.on('turn_changed', ({ currentPlayerId, currentPlayer, attemptsLeft, targets }) => {
+      this.updateTurnUI(currentPlayerId, currentPlayer, attemptsLeft, targets || []);
     });
 
     s.on('your_turn', ({ attemptsLeft }) => {
       this.toast('Giliran kamu! Tebak sekarang 🎯', 'success', 2000);
     });
 
-    s.on('guess_result', ({ player, guess, hint, correct, points, attemptsLeft, eliminated, players, guessHistory }) => {
+    s.on('guess_result', ({ player, target, guess, hint, correct, points, attemptsLeft, eliminated, players, guessHistory }) => {
       this.state.players = players;
-      this.appendHistory({ player, guess, hint, correct, points, eliminated });
+      this.appendHistory({ player, target, guess, hint, correct, points, eliminated });
       this.renderScorePanel(players);
 
       if (correct) {
@@ -1132,6 +1316,8 @@ const App = {
 
     s.on('game_aborted', ({ message }) => {
       this.stopTimer();
+      document.getElementById('overlay-setting').classList.remove('open');
+      if (this._settingCountdown) { clearInterval(this._settingCountdown); this._settingCountdown = null; }
       this.toast(message, 'error', 5000);
       setTimeout(() => {
         this._enterLobby(this.state.players, this.state.config, this.state.isHost);
@@ -1166,9 +1352,18 @@ const App = {
     document.getElementById('cfg-max').value      = config.max;
     document.getElementById('cfg-attempts').value = config.maxAttempts;
     document.getElementById('cfg-rounds').value   = config.totalRounds;
+    // Sync game mode toggle
+    const mode = config.gameMode || 'classic';
+    this.state.gameMode = mode;
+    document.getElementById('mode-classic').classList.toggle('active', mode === 'classic');
+    document.getElementById('mode-setguess').classList.toggle('active', mode === 'setguess');
     document.getElementById('config-section').style.display = isHost ? '' : 'none';
     document.getElementById('btn-start').style.display      = isHost ? '' : 'none';
     document.getElementById('waiting-msg').style.display    = isHost ? 'none' : '';
+    // Close any open overlays when returning to lobby
+    document.getElementById('overlay-setting').classList.remove('open');
+    document.getElementById('overlay-round').classList.remove('open');
+    if (this._settingCountdown) { clearInterval(this._settingCountdown); this._settingCountdown = null; }
     this._updateStartBtn(players.length);
     this.renderPlayerList(players);
     this.showScreen('lobby');
