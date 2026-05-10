@@ -516,10 +516,19 @@ function handleLeave(socket, roomCode) {
 
   // Handle setting phase disconnect
   if (room.state === 'setting') {
-    if (!room.numbersSetBy.includes(socket.id)) {
-      // Auto-assign random number for disconnected player
-      room.playerSecrets[socket.id] = Math.floor(Math.random() * (room.config.max - room.config.min + 1)) + room.config.min;
-      room.numbersSetBy.push(socket.id);
+    // Not enough players to continue — abort and return to lobby
+    if (room.players.length < 2) {
+      clearAllTimers(room);
+      resetRoom(room);
+      io.to(roomCode).emit('game_aborted', {
+        message: `${leaving.username} keluar. Game dibatalkan.`,
+      });
+      return;
+    }
+    // Still enough players — auto-assign number for the one who left and continue
+    if (!room.numbersSetBy.includes(leaving.id)) {
+      room.playerSecrets[leaving.id] = Math.floor(Math.random() * (room.config.max - room.config.min + 1)) + room.config.min;
+      room.numbersSetBy.push(leaving.id);
     }
     if (room.numbersSetBy.filter(id => room.players.find(p => p.id === id)).length >= room.players.length) {
       startSetguessGuessingPhase(roomCode);
