@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Higher or Lower 🎯</title>
+  <style>
+    /* ── Reset & Variables ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #07080f;
+      --bg2:         #0e0f1d;
+      --card:        rgba(255,255,255,0.05);
+      --card-hover:  rgba(255,255,255,0.08);
+      --border:      rgba(255,255,255,0.10);
+      --accent:      #7c3aed;
+      --accent2:     #a855f7;
+      --accent-glow: rgba(124,58,237,0.35);
+      --cyan:        #06b6d4;
+      --green:       #10b981;
+      --red:         #ef4444;
+      --yellow:      #f59e0b;
+      --text:        #f1f5f9;
+      --muted:       #64748b;
+      --muted2:      #94a3b8;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --shadow:      0 8px 32px rgba(0,0,0,0.5);
+      --timer-color: var(--green);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ── Screens ────────────────────────────────────────── */
+    .screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 16px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease;
+      overflow-y: auto;
+    }
+    .screen.active { opacity: 1; pointer-events: all; }
+
+    /* ── Background pattern ─────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -20%, rgba(124,58,237,.22) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 80%,  rgba(6,182,212,.10) 0%, transparent 50%),
+        var(--bg);
+    }
+
+    /* ── Card ───────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* ── Buttons ────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 24px; border-radius: var(--radius-sm);
+      font-size: 15px; font-weight: 600; cursor: pointer; border: none;
+      transition: all .18s ease; white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .btn-primary:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 6px 24px var(--accent-glow); }
+    .btn-secondary {
+      background: var(--card-hover); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:not(:disabled):hover { background: rgba(255,255,255,.12); }
+    .btn-green { background: linear-gradient(135deg, #059669, var(--green)); color: #fff; box-shadow: 0 4px 16px rgba(16,185,129,.3); }
+    .btn-green:not(:disabled):hover { transform: translateY(-2px); }
+    .btn-red { background: linear-gradient(135deg, #dc2626, var(--red)); color: #fff; }
+    .btn-red:not(:disabled):hover { transform: translateY(-2px); }
+    .btn-lg { padding: 14px 32px; font-size: 16px; border-radius: 10px; width: 100%; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+    /* ── Form elements ──────────────────────────────────── */
+    input[type=text], input[type=number] {
+      width: 100%; padding: 12px 16px;
+      background: rgba(255,255,255,.06); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); font-size: 15px;
+      transition: border-color .2s, box-shadow .2s; outline: none;
+    }
+    input[type=text]:focus, input[type=number]:focus {
+      border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(168,85,247,.2);
+    }
+    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    label { font-size: 13px; color: var(--muted2); margin-bottom: 6px; display: block; }
+
+    /* ── Misc ───────────────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center; padding: 3px 10px;
+      border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .5px;
+    }
+    .badge-host { background: rgba(245,158,11,.15); color: var(--yellow); border: 1px solid rgba(245,158,11,.3); }
+    .badge-you  { background: rgba(124,58,237,.2);  color: var(--accent2); border: 1px solid rgba(124,58,237,.3); }
+    .badge-turn { background: rgba(16,185,129,.15); color: var(--green);   border: 1px solid rgba(16,185,129,.3); }
+
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+    .text-muted { color: var(--muted2); font-size: 14px; }
+    .text-sm    { font-size: 13px; }
+
+    /* ── Toast ──────────────────────────────────────────── */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+    }
+    .toast {
+      padding: 12px 20px; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 500;
+      animation: toastIn .3s ease forwards;
+      pointer-events: all;
+      max-width: 320px;
+      backdrop-filter: blur(8px);
+    }
+    .toast-error  { background: rgba(239,68,68,.9);   color: #fff; }
+    .toast-info   { background: rgba(6,182,212,.85);  color: #fff; }
+    .toast-success{ background: rgba(16,185,129,.85); color: #fff; }
+    @keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes toastOut { to { opacity:0; transform:translateY(12px); } }
+
+    /* ══════════════════════════════════════════════════════
+       SCREEN: HOME
+    ══════════════════════════════════════════════════════ */
+    #screen-home .wrapper {
+      width: 100%; max-width: 440px;
+    }
+    .logo {
+      text-align: center; margin-bottom: 36px;
+    }
+    .logo .icon {
+      font-size: 56px; margin-bottom: 8px;
+      filter: drop-shadow(0 0 20px rgba(124,58,237,.6));
+      display: block;
+    }
+    .logo h1 {
+      font-size: 30px; font-weight: 800; letter-spacing: -1px;
+      background: linear-gradient(135deg, #e0c3fc, var(--accent2), var(--cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .logo p { color: var(--muted2); font-size: 14px; margin-top: 6px; }
+    .home-card { padding: 28px; }
+    .home-card .field { margin-bottom: 20px; }
+
+    .tab-group { display: flex; gap: 8px; margin-bottom: 20px; }
+    .tab-btn {
+      flex: 1; padding: 10px; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--muted2); transition: all .2s;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    #join-fields { display: none; }
+    #join-fields.visible { display: block; }
+
+    /* ══════════════════════════════════════════════════════
+       SCREEN: LOBBY
+    ══════════════════════════════════════════════════════ */
+    #screen-lobby .wrapper {
+      width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 16px;
+    }
+    .lobby-header { padding: 24px 28px 20px; }
+    .room-code-display {
+      text-align: center; margin-bottom: 12px;
+    }
+    .room-code-display .label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted2); margin-bottom: 8px; }
+    .room-code-display .code {
+      font-size: 40px; font-weight: 900; letter-spacing: 8px;
+      background: linear-gradient(135deg, var(--accent2), var(--cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      cursor: pointer; user-select: all;
+      display: inline-block;
+    }
+    .room-code-display .copy-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    #player-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .player-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,.04); border: 1px solid var(--border);
+    }
+    .player-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; flex-shrink: 0;
+    }
+    .player-name { font-weight: 600; font-size: 14px; flex: 1; }
+    .player-badges { display: flex; gap: 5px; }
+
+    .config-section { padding: 20px 28px; }
+    .config-section h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted2); margin-bottom: 16px; }
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .config-field label { margin-bottom: 5px; }
+
+    .lobby-actions { padding: 0 0 4px; display: flex; flex-direction: column; gap: 10px; }
+    .waiting-msg {
+      text-align: center; padding: 16px;
+      color: var(--muted2); font-size: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--cyan);
+      animation: pulse-anim 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse-anim {
+      0%,100% { transform:scale(1); opacity:1; }
+      50%      { transform:scale(1.5); opacity:.5; }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       SCREEN: GAME
+    ══════════════════════════════════════════════════════ */
+    #screen-game {
+      justify-content: flex-start; padding: 0;
+    }
+    #screen-game .game-layout {
+      display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Top bar */
+    .game-topbar {
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .topbar-room { font-size: 12px; color: var(--muted2); }
+    .topbar-room span { color: var(--accent2); font-weight: 700; }
+    .topbar-round {
+      font-size: 14px; font-weight: 700; text-align: center;
+    }
+    .topbar-round small { display: block; font-size: 11px; color: var(--muted2); font-weight: 400; }
+    .scores-toggle {
+      padding: 6px 12px; border-radius: 6px;
+      font-size: 12px; cursor: pointer; border: 1px solid var(--border);
+      background: var(--card); color: var(--text); white-space: nowrap;
+    }
+
+    /* Scoreboard panel */
+    #score-panel {
+      flex-shrink: 0;
+      background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border);
+      padding: 10px 16px; display: none;
+    }
+    #score-panel.open { display: block; }
+    .score-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .score-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 20px;
+      background: rgba(255,255,255,.05); border: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .score-item .pos { color: var(--yellow); font-weight: 700; width: 16px; }
+    .score-item .pts { color: var(--accent2); font-weight: 700; }
+
+    /* History log */
+    #history-log {
+      flex: 1; overflow-y: auto; padding: 12px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    #history-log::-webkit-scrollbar { width: 4px; }
+    #history-log::-webkit-scrollbar-track { background: transparent; }
+    #history-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .history-entry {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 14px; border-radius: 10px;
+      background: rgba(255,255,255,.04); border: 1px solid var(--border);
+      font-size: 14px; animation: slideIn .25s ease;
+    }
+    .history-entry.correct { border-color: rgba(16,185,129,.4); background: rgba(16,185,129,.08); }
+    .history-entry.low     { border-color: rgba(245,158,11,.2); }
+    .history-entry.high    { border-color: rgba(6,182,212,.2); }
+    .history-entry.elim    { border-color: rgba(239,68,68,.2); background: rgba(239,68,68,.05); }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+    .he-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .he-body { flex: 1; }
+    .he-player { font-weight: 600; color: var(--muted2); font-size: 12px; }
+    .he-guess  { font-size: 15px; font-weight: 700; }
+    .he-hint   { font-size: 13px; margin-top: 2px; }
+    .he-pts    { color: var(--green); font-weight: 700; font-size: 12px; margin-top: 2px; }
+
+    .history-empty {
+      text-align: center; color: var(--muted); padding: 32px; font-size: 14px;
+    }
+
+    /* Turn / input bar */
+    .game-bottom {
+      flex-shrink: 0; border-top: 1px solid var(--border);
+      padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .turn-indicator {
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--card);
+    }
+    .turn-indicator.my-turn {
+      border-color: rgba(16,185,129,.4); background: rgba(16,185,129,.07);
+    }
+    .turn-name { font-weight: 600; flex: 1; font-size: 14px; }
+    .turn-name small { color: var(--muted2); font-weight: 400; font-size: 12px; display: block; }
+    .attempts-left { font-size: 12px; color: var(--muted2); text-align: right; }
+    .attempts-left span { color: var(--yellow); font-weight: 700; }
+
+    /* Timer ring */
+    .timer-ring { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
+    .timer-ring svg { transform: rotate(-90deg); }
+    .timer-bg { fill: none; stroke: var(--border); stroke-width: 3; }
+    .timer-arc { fill: none; stroke: var(--timer-color); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset .9s linear, stroke .5s; }
+    .timer-text {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--timer-color);
+    }
+
+    .guess-row { display: flex; gap: 10px; }
+    .guess-row input { flex: 1; }
+    .guess-row .btn { flex-shrink: 0; padding: 12px 22px; }
+
+    /* ══════════════════════════════════════════════════════
+       OVERLAY: ROUND END
+    ══════════════════════════════════════════════════════ */
+    #overlay-round {
+      position: fixed; inset: 0; z-index: 800;
+      background: rgba(7,8,15,.85); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+      opacity: 0; pointer-events: none; transition: opacity .3s ease;
+    }
+    #overlay-round.open { opacity: 1; pointer-events: all; }
+    .round-card { width: 100%; max-width: 420px; padding: 28px; }
+    .round-result-icon { font-size: 48px; text-align: center; margin-bottom: 8px; }
+    .round-result-title { text-align: center; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .round-secret { text-align: center; color: var(--muted2); font-size: 14px; margin-bottom: 20px; }
+    .round-secret strong { color: var(--yellow); font-size: 20px; }
+    .round-scores-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .round-score-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,.04);
+    }
+    .rs-rank { font-size: 18px; width: 26px; text-align: center; }
+    .rs-name { flex: 1; font-size: 14px; font-weight: 600; }
+    .rs-pts  { font-weight: 700; color: var(--accent2); }
+    .rs-total{ font-size: 12px; color: var(--muted2); }
+    .round-next { text-align: center; color: var(--muted2); font-size: 13px; }
+    .round-next span { color: var(--cyan); font-weight: 700; }
+
+    /* ══════════════════════════════════════════════════════
+       SCREEN: GAME END
+    ══════════════════════════════════════════════════════ */
+    #screen-game-end .wrapper {
+      width: 100%; max-width: 520px;
+    }
+    .end-header { text-align: center; padding: 28px 24px 20px; }
+    .end-header .trophy { font-size: 64px; display: block; margin-bottom: 10px; animation: trophyBounce .6s ease .2s both; }
+    @keyframes trophyBounce { 0%{transform:scale(.5);opacity:0} 60%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
+    .end-header h2 { font-size: 26px; font-weight: 800; }
+    .end-header p  { color: var(--muted2); font-size: 14px; margin-top: 6px; }
+
+    .podium { display: flex; align-items: flex-end; justify-content: center; gap: 8px; padding: 0 24px 20px; }
+    .podium-spot { flex: 1; max-width: 130px; text-align: center; }
+    .podium-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .podium-avatar.gold   { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 0 20px rgba(245,158,11,.4); }
+    .podium-avatar.silver { background: linear-gradient(135deg, #64748b, #94a3b8); }
+    .podium-avatar.bronze { background: linear-gradient(135deg, #92400e, #b45309); }
+    .podium-name  { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .podium-score { font-size: 20px; font-weight: 800; }
+    .podium-score.gold   { color: var(--yellow); }
+    .podium-score.silver { color: #94a3b8; }
+    .podium-score.bronze { color: #b45309; }
+    .podium-bar {
+      border-radius: 8px 8px 0 0; width: 100%; margin-top: 8px;
+    }
+    .podium-bar.gold   { height: 70px; background: linear-gradient(180deg,rgba(245,158,11,.3),rgba(245,158,11,.1)); border: 1px solid rgba(245,158,11,.3); }
+    .podium-bar.silver { height: 50px; background: linear-gradient(180deg,rgba(148,163,184,.3),rgba(148,163,184,.1)); border: 1px solid rgba(148,163,184,.2); }
+    .podium-bar.bronze { height: 35px; background: linear-gradient(180deg,rgba(180,83,9,.3),rgba(180,83,9,.1)); border: 1px solid rgba(180,83,9,.2); }
+
+    .final-table { padding: 0 24px; }
+    .final-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .final-table th { color: var(--muted2); font-size: 11px; text-transform: uppercase; letter-spacing: .8px; padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+    .final-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .final-table tr:last-child td { border-bottom: none; }
+    .ft-name { font-weight: 600; }
+    .ft-total { font-weight: 700; color: var(--accent2); }
+
+    .end-actions { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── Animations & utilities ─────────────────────────── */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fadeUp .4s ease both; }
+
+    .score-bump {
+      animation: bump .4s ease;
+    }
+    @keyframes bump { 0%{transform:scale(1)} 40%{transform:scale(1.25)} 100%{transform:scale(1)} }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .config-grid { grid-template-columns: 1fr 1fr; }
+      .room-code-display .code { font-size: 30px; letter-spacing: 5px; }
+      .podium { gap: 4px; }
+      .podium-avatar { width: 38px; height: 38px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN: HOME
+════════════════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="wrapper fade-up">
+    <div class="logo">
+      <span class="icon">🎯</span>
+      <h1>Higher or Lower</h1>
+      <p>Tebak angka rahasia bersama teman-temanmu!</p>
+    </div>
+
+    <div class="card home-card">
+      <div class="field">
+        <label for="input-username">Username kamu</label>
+        <input type="text" id="input-username" placeholder="Masukkan nama..." maxlength="20" autocomplete="off" />
+      </div>
+
+      <div class="tab-group">
+        <button class="tab-btn active" id="tab-create" onclick="App.selectTab('create')">🚀 Buat Room</button>
+        <button class="tab-btn" id="tab-join" onclick="App.selectTab('join')">🔗 Gabung Room</button>
+      </div>
+
+      <div id="join-fields">
+        <div class="field">
+          <label for="input-room-code">Kode Room</label>
+          <input type="text" id="input-room-code" placeholder="Contoh: GDX4K2" maxlength="6"
+                 oninput="this.value=this.value.toUpperCase()" autocomplete="off" />
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-lg" id="btn-action" onclick="App.handleHomeAction()">
+        🚀 Buat Room
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN: LOBBY
+════════════════════════════════════════════════════════ -->
+<div id="screen-lobby" class="screen">
+  <div class="wrapper">
+
+    <div class="card lobby-header">
+      <div class="room-code-display">
+        <div class="label">Kode Room</div>
+        <div class="code" id="lobby-room-code" onclick="App.copyRoomCode()" title="Klik untuk menyalin">——————</div>
+        <div class="copy-hint">Klik kode untuk menyalin 📋</div>
+      </div>
+      <div class="divider"></div>
+      <div style="margin-bottom:10px;">
+        <label style="margin-bottom:8px;">Pemain (<span id="player-count">0</span>)</label>
+        <ul id="player-list"></ul>
+      </div>
+    </div>
+
+    <div class="card config-section" id="config-section">
+      <h3>⚙️ Pengaturan Game</h3>
+      <div class="config-grid">
+        <div class="config-field">
+          <label for="cfg-min">Angka Min</label>
+          <input type="number" id="cfg-min" value="1" min="1" max="9999" onchange="App.updateConfig()" />
+        </div>
+        <div class="config-field">
+          <label for="cfg-max">Angka Max</label>
+          <input type="number" id="cfg-max" value="100" min="2" max="10000" onchange="App.updateConfig()" />
+        </div>
+        <div class="config-field">
+          <label for="cfg-attempts">Maks Tebakan</label>
+          <input type="number" id="cfg-attempts" value="7" min="1" max="20" onchange="App.updateConfig()" />
+        </div>
+        <div class="config-field">
+          <label for="cfg-rounds">Jumlah Ronde</label>
+          <input type="number" id="cfg-rounds" value="3" min="1" max="10" onchange="App.updateConfig()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="lobby-actions">
+      <button class="btn btn-green btn-lg" id="btn-start" onclick="App.startGame()" style="display:none" disabled>
+        🎮 Mulai Game
+      </button>
+      <div class="waiting-msg" id="waiting-msg" style="display:none">
+        <span class="pulse-dot"></span>
+        Menunggu host memulai game...
+      </div>
+      <button class="btn btn-secondary btn-lg" onclick="App.leaveRoom()">🚪 Keluar Room</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN: GAME
+════════════════════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+  <div class="game-layout">
+
+    <!-- Top Bar -->
+    <div class="game-topbar">
+      <div class="topbar-room">Room: <span id="game-room-code">——</span></div>
+      <div class="topbar-round">
+        <span id="round-label">Ronde 1 / 3</span>
+        <small id="range-label">Rentang: 1 – 100</small>
+      </div>
+      <button class="scores-toggle" onclick="App.toggleScores()">🏆 Skor</button>
+    </div>
+
+    <!-- Score Panel -->
+    <div id="score-panel">
+      <div class="score-list" id="score-list"></div>
+    </div>
+
+    <!-- History Log -->
+    <div id="history-log">
+      <div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="game-bottom">
+      <div class="turn-indicator" id="turn-indicator">
+        <div class="timer-ring" id="timer-ring">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle class="timer-bg" cx="20" cy="20" r="16" />
+            <circle class="timer-arc" id="timer-arc" cx="20" cy="20" r="16"
+                    stroke-dasharray="100.53" stroke-dashoffset="0" />
+          </svg>
+          <div class="timer-text" id="timer-text">30</div>
+        </div>
+        <div class="turn-name">
+          <span id="turn-player-name">—</span>
+          <small id="turn-subtitle">menebak...</small>
+        </div>
+        <div class="attempts-left">Tebakan: <span id="attempts-left-val">—</span></div>
+      </div>
+
+      <div class="guess-row" id="guess-row" style="display:none">
+        <input type="number" id="guess-input" placeholder="Masukkan angka..."
+               onkeydown="if(event.key==='Enter') App.submitGuess()" />
+        <button class="btn btn-primary" onclick="App.submitGuess()">Tebak!</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     OVERLAY: ROUND END
+════════════════════════════════════════════════════════ -->
+<div id="overlay-round">
+  <div class="card round-card fade-up">
+    <div class="round-result-icon" id="round-icon">🎯</div>
+    <div class="round-result-title" id="round-title">Ronde Selesai!</div>
+    <div class="round-secret" id="round-secret">Angka rahasia: <strong id="secret-reveal">—</strong></div>
+    <div class="round-scores-list" id="round-scores-list"></div>
+    <div class="round-next" id="round-next-msg">Ronde berikutnya dalam <span id="next-countdown">5</span>s</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN: GAME END
+════════════════════════════════════════════════════════ -->
+<div id="screen-game-end" class="screen">
+  <div class="wrapper card fade-up">
+    <div class="end-header">
+      <span class="trophy">🏆</span>
+      <h2>Game Selesai!</h2>
+      <p>Pemenang: <strong id="final-winner" style="color:var(--yellow)">—</strong></p>
+    </div>
+
+    <div class="podium" id="podium"></div>
+
+    <div class="final-table">
+      <table id="final-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nama</th>
+            <th id="round-headers-row"></th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="final-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="end-actions">
+      <button class="btn btn-green btn-lg" id="btn-play-again" onclick="App.playAgain()" style="display:none">
+        🔄 Main Lagi
+      </button>
+      <button class="btn btn-secondary btn-lg" onclick="App.leaveRoom()">🚪 Keluar Room</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast Container ────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ════════════════════════════════════════════════════════
+//  App State
+// ════════════════════════════════════════════════════════
+const App = {
+  socket:    null,
+  state: {
+    username:     '',
+    roomCode:     '',
+    isHost:       false,
+    hostId:       '',
+    players:      [],
+    config:       { min:1, max:100, maxAttempts:7, totalRounds:3 },
+    currentRound: 0,
+    totalRounds:  0,
+    myTurn:       false,
+    activeTab:    'create',
+  },
+  timer: {
+    interval: null,
+    left:     30,
+    TOTAL:    30,
+  },
+
+  // ── Init ────────────────────────────────────────────────
+  init() {
+    this.socket = io();
+    this._bindSocketEvents();
+    document.getElementById('input-username').addEventListener('keydown', e => {
+      if (e.key === 'Enter') this.handleHomeAction();
+    });
+    document.getElementById('input-room-code').addEventListener('keydown', e => {
+      if (e.key === 'Enter') this.handleHomeAction();
+    });
+    document.getElementById('guess-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') this.submitGuess();
+    });
+  },
+
+  // ── Screen Management ───────────────────────────────────
+  showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(`screen-${id}`).classList.add('active');
+  },
+
+  // ── Toast ───────────────────────────────────────────────
+  toast(msg, type = 'info', duration = 3500) {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => {
+      t.style.animation = 'toastOut .3s ease forwards';
+      setTimeout(() => t.remove(), 300);
+    }, duration);
+  },
+
+  // ── Tab Selection (home) ────────────────────────────────
+  selectTab(tab) {
+    this.state.activeTab = tab;
+    document.getElementById('tab-create').classList.toggle('active', tab === 'create');
+    document.getElementById('tab-join').classList.toggle('active', tab === 'join');
+    document.getElementById('join-fields').classList.toggle('visible', tab === 'join');
+    const btn = document.getElementById('btn-action');
+    btn.innerHTML = tab === 'create' ? '🚀 Buat Room' : '🔗 Gabung Room';
+  },
+
+  // ── Home Action ─────────────────────────────────────────
+  handleHomeAction() {
+    const username = document.getElementById('input-username').value.trim();
+    if (!username) { this.toast('Masukkan username dulu!', 'error'); return; }
+    this.state.username = username;
+
+    if (this.state.activeTab === 'create') {
+      this.socket.emit('create_room', { username });
+    } else {
+      const code = document.getElementById('input-room-code').value.trim().toUpperCase();
+      if (!code || code.length < 6) { this.toast('Masukkan kode room 6 karakter!', 'error'); return; }
+      this.socket.emit('join_room', { username, roomCode: code });
+    }
+  },
+
+  // ── Copy Room Code ──────────────────────────────────────
+  copyRoomCode() {
+    const code = this.state.roomCode;
+    navigator.clipboard.writeText(code).then(() => {
+      this.toast(`Kode "${code}" disalin!`, 'success', 2000);
+    }).catch(() => {
+      this.toast(`Kode room: ${code}`, 'info');
+    });
+  },
+
+  // ── Lobby: Update Config ─────────────────────────────────
+  updateConfig() {
+    this.socket.emit('update_config', {
+      roomCode: this.state.roomCode,
+      config: {
+        min:         parseInt(document.getElementById('cfg-min').value),
+        max:         parseInt(document.getElementById('cfg-max').value),
+        maxAttempts: parseInt(document.getElementById('cfg-attempts').value),
+        totalRounds: parseInt(document.getElementById('cfg-rounds').value),
+      }
+    });
+  },
+
+  startGame() {
+    this.socket.emit('start_game', { roomCode: this.state.roomCode });
+  },
+
+  leaveRoom() {
+    this.socket.emit('leave_room', { roomCode: this.state.roomCode });
+    this.resetLocalState();
+    this.showScreen('home');
+  },
+
+  playAgain() {
+    this.socket.emit('play_again', { roomCode: this.state.roomCode });
+  },
+
+  toggleScores() {
+    document.getElementById('score-panel').classList.toggle('open');
+  },
+
+  // ── Submit Guess ─────────────────────────────────────────
+  submitGuess() {
+    if (!this.state.myTurn) return;
+    const input = document.getElementById('guess-input');
+    const val   = input.value.trim();
+    if (!val) return;
+    this.socket.emit('submit_guess', { roomCode: this.state.roomCode, guess: parseInt(val) });
+    input.value = '';
+  },
+
+  // ── Timer ────────────────────────────────────────────────
+  startTimer(seconds = 30) {
+    this.stopTimer();
+    this.timer.left  = seconds;
+    this.timer.TOTAL = seconds;
+    this._updateTimerUI();
+    this.timer.interval = setInterval(() => {
+      this.timer.left--;
+      this._updateTimerUI();
+      if (this.timer.left <= 0) this.stopTimer();
+    }, 1000);
+  },
+
+  stopTimer() {
+    if (this.timer.interval) { clearInterval(this.timer.interval); this.timer.interval = null; }
+  },
+
+  _updateTimerUI() {
+    const pct  = this.timer.left / this.timer.TOTAL;
+    const circ = 2 * Math.PI * 16; // r=16 → circumference ≈ 100.53
+    const arc  = document.getElementById('timer-arc');
+    const txt  = document.getElementById('timer-text');
+    if (!arc) return;
+    arc.style.strokeDashoffset = circ * (1 - pct);
+    txt.textContent = this.timer.left;
+    const color = this.timer.left <= 5 ? 'var(--red)' : this.timer.left <= 10 ? 'var(--yellow)' : 'var(--green)';
+    arc.style.stroke   = color;
+    txt.style.color    = color;
+  },
+
+  // ── Render Helpers ────────────────────────────────────────
+  renderPlayerList(players) {
+    const list  = document.getElementById('player-list');
+    const count = document.getElementById('player-count');
+    count.textContent = players.length;
+    list.innerHTML = players.map(p => {
+      const initials = p.username.substring(0, 2).toUpperCase();
+      const isHost = p.id === this.state.hostId;
+      const isMe   = p.id === this.socket.id;
+      return `
+        <li class="player-item">
+          <div class="player-avatar">${initials}</div>
+          <div class="player-name">${escHtml(p.username)}</div>
+          <div class="player-badges">
+            ${isHost ? '<span class="badge badge-host">HOST</span>' : ''}
+            ${isMe   ? '<span class="badge badge-you">KAMU</span>' : ''}
+          </div>
+        </li>
+      `;
+    }).join('');
+  },
+
+  renderScorePanel(players) {
+    const sorted = [...players].sort((a, b) => b.score - a.score);
+    const medals = ['🥇','🥈','🥉'];
+    document.getElementById('score-list').innerHTML = sorted.map((p, i) => `
+      <div class="score-item">
+        <span class="pos">${medals[i] || (i+1)}</span>
+        <span>${escHtml(p.username)}</span>
+        <span class="pts">${p.score}</span>
+      </div>
+    `).join('');
+  },
+
+  appendHistory(entry) {
+    const log   = document.getElementById('history-log');
+    const empty = document.getElementById('history-empty');
+    if (empty) empty.remove();
+
+    let cls = '';
+    if (entry.correct)  cls = 'correct';
+    else if (entry.hint.includes('rendah')) cls = 'low';
+    else if (entry.hint.includes('tinggi')) cls = 'high';
+    if (entry.eliminated) cls = 'elim';
+
+    const initials = entry.player.substring(0, 2).toUpperCase();
+    const el = document.createElement('div');
+    el.className = `history-entry ${cls}`;
+    el.innerHTML = `
+      <div class="he-avatar">${initials}</div>
+      <div class="he-body">
+        <div class="he-player">${escHtml(entry.player)} menebak</div>
+        <div class="he-guess">${entry.guess}</div>
+        <div class="he-hint">${entry.hint}${entry.eliminated ? ' <span style="color:var(--red);font-size:12px">Habis tebakan!</span>' : ''}</div>
+        ${entry.correct ? `<div class="he-pts">+${entry.points} poin</div>` : ''}
+      </div>
+    `;
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+  },
+
+  rebuildHistory(history) {
+    const log = document.getElementById('history-log');
+    log.innerHTML = history.length ? '' : '<div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>';
+    history.forEach(e => this.appendHistory(e));
+  },
+
+  renderRoundEnd(data) {
+    document.getElementById('round-icon').textContent = data.isDraw ? '🤝' : '🎉';
+    document.getElementById('round-title').textContent =
+      data.isDraw ? 'Ronde Seri!' : `${escHtml(data.winner)} menang ronde ini!`;
+    document.getElementById('secret-reveal').textContent = data.secretNumber;
+
+    const medals = ['🥇','🥈','🥉'];
+    const list   = document.getElementById('round-scores-list');
+    list.innerHTML = data.players.map((p, i) => {
+      const roundPts = p.roundScores[data.round - 1] ?? 0;
+      return `
+        <div class="round-score-row">
+          <span class="rs-rank">${medals[i] || (i+1)}</span>
+          <span class="rs-name">${escHtml(p.username)}</span>
+          <span class="rs-pts">+${roundPts} pts</span>
+          <span class="rs-total">Total: ${p.score}</span>
+        </div>
+      `;
+    }).join('');
+
+    const isLast = data.round >= data.totalRounds;
+    const nextMsg = document.getElementById('round-next-msg');
+    nextMsg.innerHTML = isLast
+      ? '<span style="color:var(--yellow)">Game akan segera berakhir...</span>'
+      : `Ronde berikutnya dalam <span id="next-countdown">5</span>s`;
+
+    document.getElementById('overlay-round').classList.add('open');
+
+    // Countdown
+    if (!isLast) {
+      let cnt = 5;
+      const tick = setInterval(() => {
+        cnt--;
+        const el = document.getElementById('next-countdown');
+        if (el) el.textContent = cnt;
+        if (cnt <= 0) clearInterval(tick);
+      }, 1000);
+    }
+  },
+
+  renderGameEnd(data) {
+    this.stopTimer();
+    document.getElementById('overlay-round').classList.remove('open');
+
+    document.getElementById('final-winner').textContent = data.winner;
+
+    // Podium (top 3)
+    const top3 = data.finalScores.slice(0, 3);
+    const podiumOrder = top3.length >= 2 ? [top3[1], top3[0], top3[2]].filter(Boolean) : top3;
+    const podiumClasses = top3.length >= 2 ? ['silver','gold','bronze'] : ['gold'];
+    const podiumEl = document.getElementById('podium');
+    podiumEl.innerHTML = podiumOrder.map((p, i) => {
+      const cls  = podiumClasses[i] || 'silver';
+      const init = p.username.substring(0, 2).toUpperCase();
+      return `
+        <div class="podium-spot">
+          <div class="podium-avatar ${cls}">${init}</div>
+          <div class="podium-name">${escHtml(p.username)}</div>
+          <div class="podium-score ${cls}">${p.score}</div>
+          <div class="podium-bar ${cls}"></div>
+        </div>
+      `;
+    }).join('');
+
+    // Detailed table
+    const rounds     = data.finalScores[0]?.roundScores?.length || 0;
+    const hdrs       = document.getElementById('round-headers-row');
+    hdrs.colSpan     = rounds;
+    hdrs.textContent = rounds > 0 ? `Ronde 1–${rounds}` : 'Ronde';
+
+    const tbody = document.getElementById('final-tbody');
+    tbody.innerHTML = data.finalScores.map((p, i) => {
+      const roundCells = (p.roundScores || []).map(s =>
+        `<td style="text-align:center;color:${s>0?'var(--green)':'var(--muted)'}">${s}</td>`
+      ).join('');
+      return `
+        <tr>
+          <td>${['🥇','🥈','🥉'][i] || i+1}</td>
+          <td class="ft-name">${escHtml(p.username)}</td>
+          ${roundCells}
+          <td class="ft-total">${p.score}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('btn-play-again').style.display = this.state.isHost ? '' : 'none';
+    this.showScreen('game-end');
+  },
+
+  // ── Update turn UI ───────────────────────────────────────
+  updateTurnUI(currentPlayerId, currentPlayerName, attemptsLeft) {
+    const isMe = currentPlayerId === this.socket.id;
+    this.state.myTurn = isMe;
+
+    const indicator = document.getElementById('turn-indicator');
+    indicator.classList.toggle('my-turn', isMe);
+
+    document.getElementById('turn-player-name').textContent =
+      isMe ? '✨ Giliran kamu!' : `${currentPlayerName} sedang menebak`;
+    document.getElementById('turn-subtitle').textContent =
+      isMe ? `Kamu punya ${attemptsLeft} tebakan` : 'Tunggu giliranmu...';
+    document.getElementById('attempts-left-val').textContent = attemptsLeft;
+
+    const guessRow = document.getElementById('guess-row');
+    guessRow.style.display = isMe ? 'flex' : 'none';
+    if (isMe) {
+      const input = document.getElementById('guess-input');
+      input.min   = this.state.config.min;
+      input.max   = this.state.config.max;
+      input.placeholder = `${this.state.config.min} – ${this.state.config.max}`;
+      input.focus();
+    }
+
+    this.startTimer(30);
+  },
+
+  resetLocalState() {
+    this.stopTimer();
+    Object.assign(this.state, {
+      username: '', roomCode: '', isHost: false, hostId: '',
+      players: [], myTurn: false,
+    });
+  },
+
+  // ── Socket Events ─────────────────────────────────────────
+  _bindSocketEvents() {
+    const s = this.socket;
+
+    s.on('room_created', ({ roomCode, players, config, isHost, hostId }) => {
+      this.state.roomCode = roomCode;
+      this.state.isHost   = isHost;
+      this.state.hostId   = s.id;
+      this.state.players  = players;
+      this.state.config   = config;
+      this._enterLobby(players, config, true);
+    });
+
+    s.on('room_joined', ({ roomCode, players, config, isHost, hostId }) => {
+      this.state.roomCode = roomCode;
+      this.state.isHost   = isHost;
+      this.state.hostId   = hostId;
+      this.state.players  = players;
+      this.state.config   = config;
+      this._enterLobby(players, config, false);
+    });
+
+    s.on('player_joined', ({ players, newPlayer }) => {
+      this.state.players = players;
+      this.renderPlayerList(players);
+      this._updateStartBtn(players.length);
+      if (newPlayer && newPlayer !== this.state.username) {
+        this.toast(`${newPlayer} bergabung!`, 'info', 2500);
+      }
+    });
+
+    s.on('config_updated', ({ config }) => {
+      this.state.config = config;
+      if (!this.state.isHost) {
+        document.getElementById('cfg-min').value      = config.min;
+        document.getElementById('cfg-max').value      = config.max;
+        document.getElementById('cfg-attempts').value = config.maxAttempts;
+        document.getElementById('cfg-rounds').value   = config.totalRounds;
+      }
+    });
+
+    s.on('host_changed', ({ newHostId, newHost }) => {
+      this.state.hostId  = newHostId;
+      this.state.isHost  = newHostId === s.id;
+      const wasHost = this.state.isHost;
+      this.renderPlayerList(this.state.players);
+      document.getElementById('btn-start').style.display   = wasHost ? '' : 'none';
+      document.getElementById('waiting-msg').style.display = wasHost ? 'none' : '';
+      document.getElementById('config-section').style.display = wasHost ? '' : 'none';
+      if (wasHost) this.toast('Kamu sekarang menjadi host!', 'success');
+      else this.toast(`${newHost} sekarang menjadi host`, 'info');
+    });
+
+    s.on('player_left', ({ players, leftPlayer }) => {
+      this.state.players = players;
+      this.renderPlayerList(players);
+      this._updateStartBtn(players.length);
+      this.toast(`${leftPlayer} keluar dari room`, 'info', 3000);
+    });
+
+    s.on('game_started', ({ config, players }) => {
+      this.state.config = config;
+      this.state.players = players;
+      document.getElementById('game-room-code').textContent = this.state.roomCode;
+      document.getElementById('range-label').textContent =
+        `Rentang: ${config.min} – ${config.max}`;
+      document.getElementById('round-label').textContent =
+        `Ronde — / ${config.totalRounds}`;
+      document.getElementById('history-log').innerHTML =
+        '<div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>';
+      document.getElementById('overlay-round').classList.remove('open');
+      this.renderScorePanel(players);
+      this.showScreen('game');
+    });
+
+    s.on('round_started', ({ round, totalRounds, config, players }) => {
+      this.state.currentRound = round;
+      this.state.totalRounds  = totalRounds;
+      this.state.config       = config;
+      this.state.players      = players;
+      document.getElementById('round-label').textContent = `Ronde ${round} / ${totalRounds}`;
+      document.getElementById('range-label').textContent = `Rentang: ${config.min} – ${config.max}`;
+      document.getElementById('history-log').innerHTML =
+        '<div class="history-empty" id="history-empty">⏳ Menunggu tebakan pertama...</div>';
+      document.getElementById('overlay-round').classList.remove('open');
+      document.getElementById('guess-row').style.display = 'none';
+      this.state.myTurn = false;
+      this.stopTimer();
+      this.renderScorePanel(players);
+      this.toast(`Ronde ${round} dimulai! 🎯`, 'info', 2500);
+    });
+
+    s.on('turn_changed', ({ currentPlayerId, currentPlayer, attemptsLeft }) => {
+      this.updateTurnUI(currentPlayerId, currentPlayer, attemptsLeft);
+    });
+
+    s.on('your_turn', ({ attemptsLeft }) => {
+      this.toast('Giliran kamu! Tebak sekarang 🎯', 'success', 2000);
+    });
+
+    s.on('guess_result', ({ player, guess, hint, correct, points, attemptsLeft, eliminated, players, guessHistory }) => {
+      this.state.players = players;
+      this.appendHistory({ player, guess, hint, correct, points, eliminated });
+      this.renderScorePanel(players);
+
+      if (correct) {
+        this.stopTimer();
+        this.state.myTurn = false;
+        document.getElementById('guess-row').style.display = 'none';
+      } else {
+        // Update attempts for the active player if it was us
+        if (this.state.myTurn) {
+          document.getElementById('attempts-left-val').textContent = attemptsLeft;
+          document.getElementById('turn-subtitle').textContent = `Kamu punya ${attemptsLeft} tebakan`;
+        }
+      }
+    });
+
+    s.on('turn_timeout', ({ player }) => {
+      this.toast(`⏰ ${player} kehabisan waktu — giliran dilewati`, 'info', 3000);
+      this.stopTimer();
+      this.state.myTurn = false;
+      document.getElementById('guess-row').style.display = 'none';
+    });
+
+    s.on('round_ended', (data) => {
+      this.stopTimer();
+      this.state.myTurn = false;
+      document.getElementById('guess-row').style.display = 'none';
+      this.state.players = data.players;
+      this.renderScorePanel(data.players);
+      this.renderRoundEnd(data);
+    });
+
+    s.on('game_ended', (data) => {
+      this.renderGameEnd(data);
+    });
+
+    s.on('game_aborted', ({ message }) => {
+      this.stopTimer();
+      this.toast(message, 'error', 5000);
+      setTimeout(() => {
+        this._enterLobby(this.state.players, this.state.config, this.state.isHost);
+      }, 2000);
+    });
+
+    s.on('game_reset', ({ players, config, hostId }) => {
+      this.state.players = players;
+      this.state.config  = config;
+      this.state.hostId  = hostId;
+      this.state.isHost  = hostId === s.id;
+      this._enterLobby(players, config, this.state.isHost);
+      this.toast('Game direset! Siap main lagi.', 'success');
+    });
+
+    s.on('error', ({ message }) => {
+      this.toast(message, 'error');
+    });
+
+    s.on('disconnect', () => {
+      this.toast('Koneksi terputus. Mencoba reconnect...', 'error', 5000);
+    });
+    s.on('connect', () => {
+      if (this.state.roomCode) this.toast('Terhubung kembali!', 'success', 2000);
+    });
+  },
+
+  // ── Enter Lobby helper ───────────────────────────────────
+  _enterLobby(players, config, isHost) {
+    document.getElementById('lobby-room-code').textContent = this.state.roomCode;
+    document.getElementById('cfg-min').value      = config.min;
+    document.getElementById('cfg-max').value      = config.max;
+    document.getElementById('cfg-attempts').value = config.maxAttempts;
+    document.getElementById('cfg-rounds').value   = config.totalRounds;
+    document.getElementById('config-section').style.display = isHost ? '' : 'none';
+    document.getElementById('btn-start').style.display      = isHost ? '' : 'none';
+    document.getElementById('waiting-msg').style.display    = isHost ? 'none' : '';
+    this._updateStartBtn(players.length);
+    this.renderPlayerList(players);
+    this.showScreen('lobby');
+  },
+
+  _updateStartBtn(count) {
+    const btn = document.getElementById('btn-start');
+    if (btn) btn.disabled = count < 2;
+  },
+};
+
+// ── Utility ───────────────────────────────────────────────
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Boot ──────────────────────────────────────────────────
+App.init();
+</script>
+</body>
+</html>
