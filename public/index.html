@@ -636,7 +636,7 @@
 <!-- ── Toast Container ────────────────────────────────── -->
 <div id="toast-container"></div>
 
-<script src="/game/socket.io/socket.io.js"></script>
+<script src="/NumberGuessingGame/socket.io/socket.io.js"></script>
 <script>
 // ════════════════════════════════════════════════════════
 //  App State
@@ -663,7 +663,7 @@ const App = {
 
   // ── Init ────────────────────────────────────────────────
   init() {
-    this.socket = io({ path: '/game/socket.io' });
+    this.socket = io({ path: '/NumberGuessingGame/socket.io' });
     this._bindSocketEvents();
     document.getElementById('input-username').addEventListener('keydown', e => {
       if (e.key === 'Enter') this.handleHomeAction();
