@@ -111,7 +111,14 @@ io.on('connection', (socket) => {
     if (!room)                { socket.emit('error', { message: `Room "${code}" tidak ditemukan!` }); return; }
     if (room.state !== 'lobby') { socket.emit('error', { message: 'Game sudah berjalan!' }); return; }
     if (room.players.some(p => p.username.toLowerCase() === name.toLowerCase())) {
-      socket.emit('error', { message: 'Username sudah digunakan di room ini!' }); return;
+      socket.emit('error', { message: `Username "${name}" sudah dipakai di room ini! Pilih nama lain.` }); return;
+    }
+    if (room.config.gameMode === 'setguess' && room.players.length >= 2) {
+      socket.emit('error', { message: 'Mode Set & Guess hanya bisa dimainkan oleh 2 pemain!' }); return;
+    }
+    const MAX_PLAYERS = 8;
+    if (room.players.length >= MAX_PLAYERS) {
+      socket.emit('error', { message: `Room sudah penuh (maks ${MAX_PLAYERS} pemain)!` }); return;
     }
 
     const player = createPlayer(socket.id, name);
@@ -138,6 +145,9 @@ io.on('connection', (socket) => {
     const gameMode    = config.gameMode === 'setguess' ? 'setguess' : 'classic';
 
     if (min >= max) { socket.emit('error', { message: 'Nilai min harus lebih kecil dari max!' }); return; }
+    if (gameMode === 'setguess' && room.players.length > 2) {
+      socket.emit('error', { message: 'Mode Set & Guess hanya untuk 2 pemain. Pastikan room hanya berisi 2 pemain.' }); return;
+    }
     room.config = { min, max, maxAttempts, totalRounds, gameMode };
     io.to(roomCode).emit('config_updated', { config: room.config });
   });
@@ -147,6 +157,9 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if (!room || room.host !== socket.id || room.state !== 'lobby') return;
     if (room.players.length < 2) { socket.emit('error', { message: 'Butuh minimal 2 pemain!' }); return; }
+    if (room.config.gameMode === 'setguess' && room.players.length !== 2) {
+      socket.emit('error', { message: 'Mode Set & Guess harus tepat 2 pemain!' }); return;
+    }
 
     room.state = 'playing';
     room.currentRound = 1;
