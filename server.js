@@ -292,6 +292,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ── Surrender ────────────────────────────────────────────────────────────────
+  socket.on('surrender', ({ roomCode }) => {
+    const room = rooms[roomCode];
+    if (!room || (room.state !== 'playing' && room.state !== 'setting')) return;
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player) return;
+
+    clearAllTimers(room);
+    resetRoom(room);
+    io.to(roomCode).emit('game_reset', {
+      players: room.players, config: room.config, hostId: room.host,
+      surrenderedBy: player.username,
+    });
+  });
+
   // ── Play Again ───────────────────────────────────────────────────────────────
   socket.on('play_again', ({ roomCode }) => {
     const room = rooms[roomCode];

@@ -603,7 +603,7 @@
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <button class="scores-toggle" onclick="App.toggleScores()">🏆 Skor</button>
-        <button class="scores-toggle" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="App.leaveRoom()">🚪 Keluar</button>
+        <button class="scores-toggle" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="App.surrender()">🏳️ Menyerah</button>
       </div>
     </div>
 
@@ -870,6 +870,11 @@ const App = {
     this.showScreen('home');
   },
 
+  surrender() {
+    if (!confirm('Yakin ingin menyerah? Game akan diulang dari awal, semua pemain tetap di room.')) return;
+    this.socket.emit('surrender', { roomCode: this.state.roomCode });
+  },
+
   playAgain() {
     this.socket.emit('play_again', { roomCode: this.state.roomCode });
   },
@@ -887,9 +892,10 @@ const App = {
 
     const payload = { roomCode: this.state.roomCode, guess: parseInt(val) };
     if (this.state.config.gameMode === 'setguess') {
-      const sel = document.getElementById('target-select');
-      if (!sel.value) { this.toast('Pilih lawan yang ingin kamu tebak!', 'error'); return; }
-      payload.targetPlayerId = sel.value;
+      // Auto-select the only opponent (always 2-player mode)
+      const opponent = this.state.players.find(p => p.id !== this.socket.id);
+      if (!opponent) { this.toast('Tidak ada lawan ditemukan!', 'error'); return; }
+      payload.targetPlayerId = opponent.id;
     }
     this.socket.emit('submit_guess', payload);
     input.value = '';
@@ -1117,14 +1123,8 @@ const App = {
     guessRow.style.display = isMe ? 'flex' : 'none';
 
     if (isMe) {
-      // Target selector (setguess only)
-      if (isSetguess && targets.length > 0) {
-        targetSel.style.display = '';
-        targetSel.innerHTML = `<option value="">— Pilih lawan —</option>` +
-          targets.map(t => `<option value="${t.id}">${escHtml(t.username)}</option>`).join('');
-      } else {
-        targetSel.style.display = 'none';
-      }
+      // Target selector hidden — auto-pick opponent in setguess mode
+      targetSel.style.display = 'none';
 
       const input = document.getElementById('guess-input');
       input.min   = this.state.config.min;
@@ -1338,13 +1338,17 @@ const App = {
       }, 2000);
     });
 
-    s.on('game_reset', ({ players, config, hostId }) => {
+    s.on('game_reset', ({ players, config, hostId, surrenderedBy }) => {
       this.state.players = players;
       this.state.config  = config;
       this.state.hostId  = hostId;
       this.state.isHost  = hostId === s.id;
+      this.stopTimer();
       this._enterLobby(players, config, this.state.isHost);
-      this.toast('Game direset! Siap main lagi.', 'success');
+      const msg = surrenderedBy
+        ? `🏳️ ${surrenderedBy} menyerah! Siap main lagi.`
+        : '🔄 Game direset! Siap main lagi.';
+      this.toast(msg, surrenderedBy ? 'info' : 'success', 3000);
     });
 
     s.on('error', ({ message }) => {
